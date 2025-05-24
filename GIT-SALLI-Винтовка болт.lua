@@ -1,16 +1,30 @@
 -- Универсальный скрипт для винтовки "Болт" (Мёртвые рельсы)
--- Полная версия с разрушением блоков и мгновенным убийством
+-- Версия с корректным отключением при повторной активации
 
-if _G.BoltRifleLoaded then
-    _G.BoltRifleLoaded:Destroy()
-    _G.BoltRifleLoaded = nil
+-- Проверка на повторное выполнение
+if _G.BoltRifleSystem then
+    -- Удаляем все созданные элементы
+    if _G.BoltRifleSystem.ScreenGui then
+        _G.BoltRifleSystem.ScreenGui:Destroy()
+    end
+    if _G.BoltRifleSystem.Tool then
+        _G.BoltRifleSystem.Tool:Destroy()
+    end
+    if _G.BoltRifleSystem.Connections then
+        for _, connection in pairs(_G.BoltRifleSystem.Connections) do
+            connection:Disconnect()
+        end
+    end
+    _G.BoltRifleSystem = nil
     return
 end
 
+-- Ожидание загрузки игры
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
+-- Сервисы
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -19,7 +33,7 @@ local TweenService = game:GetService("TweenService")
 -- Настройки оружия
 local settings = {
     WeaponName = "Болт (Убийца)",
-    Damage = math.huge, -- Мгновенное убийство
+    Damage = math.huge,
     FireRate = 0.1,
     MaxDistance = 1000,
     MaxAmmo = 6,
@@ -29,8 +43,8 @@ local settings = {
     BulletSize = 0.2,
     BulletDuration = 0.2,
     BulletSpeed = 2000,
-    DestroyBlocks = true, -- Разрушение блоков
-    BlockDestroyRadius = 3 -- Радиус разрушения блоков
+    DestroyBlocks = true,
+    BlockDestroyRadius = 3
 }
 
 -- Состояние оружия
@@ -47,78 +61,88 @@ local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
--- Создаем GUI для отображения патронов
-local ammoUI = {
-    ScreenGui = Instance.new("ScreenGui"),
-    AmmoText = Instance.new("TextLabel"),
-    ReloadText = Instance.new("TextLabel")
+-- Создание системы управления
+_G.BoltRifleSystem = {
+    ScreenGui = nil,
+    Tool = nil,
+    Connections = {}
 }
 
+-- Создание интерфейса
 local function createAmmoDisplay()
-    ammoUI.ScreenGui.Name = "BoltRifleUI"
-    ammoUI.ScreenGui.ResetOnSpawn = false
-    ammoUI.ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ammoUI.ScreenGui.Parent = game:GetService("CoreGui")
-    ammoUI.ScreenGui.Enabled = false
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "BoltRifleUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = game:GetService("CoreGui")
+    screenGui.Enabled = false
+    _G.BoltRifleSystem.ScreenGui = screenGui
 
     local frame = Instance.new("Frame")
     frame.Name = "AmmoDisplay"
     frame.Size = UDim2.new(0, 200, 0, 80)
-    frame.Position = UDim2.new(0, 20, 1, -settings.AmmoDisplayOffset - 80)
+    frame.Position = UDim2.new(0, 20, 1, -100)
     frame.AnchorPoint = Vector2.new(0, 1)
     frame.BackgroundTransparency = 1
-    frame.Parent = ammoUI.ScreenGui
+    frame.Parent = screenGui
 
-    ammoUI.AmmoText.Name = "AmmoCount"
-    ammoUI.AmmoText.Size = UDim2.new(1, 0, 0, 60)
-    ammoUI.AmmoText.Position = UDim2.new(0, 0, 0, 0)
-    ammoUI.AmmoText.BackgroundTransparency = 1
-    ammoUI.AmmoText.TextColor3 = Color3.new(1, 1, 1)
-    ammoUI.AmmoText.TextStrokeColor3 = Color3.new(0, 0, 0)
-    ammoUI.AmmoText.TextStrokeTransparency = 0.5
-    ammoUI.AmmoText.Font = Enum.Font.SciFi
-    ammoUI.AmmoText.TextSize = 48
-    ammoUI.AmmoText.TextXAlignment = Enum.TextXAlignment.Left
-    ammoUI.AmmoText.Text = weaponState.Ammo .. "|" .. settings.MaxAmmo
-    ammoUI.AmmoText.Parent = frame
+    local ammoText = Instance.new("TextLabel")
+    ammoText.Name = "AmmoCount"
+    ammoText.Size = UDim2.new(1, 0, 0, 60)
+    ammoText.Position = UDim2.new(0, 0, 0, 0)
+    ammoText.BackgroundTransparency = 1
+    ammoText.TextColor3 = Color3.new(1, 1, 1)
+    ammoText.TextStrokeColor3 = Color3.new(0, 0, 0)
+    ammoText.TextStrokeTransparency = 0.5
+    ammoText.Font = Enum.Font.SciFi
+    ammoText.TextSize = 48
+    ammoText.TextXAlignment = Enum.TextXAlignment.Left
+    ammoText.Text = weaponState.Ammo .. "|" .. settings.MaxAmmo
+    ammoText.Parent = frame
 
-    ammoUI.ReloadText.Name = "ReloadStatus"
-    ammoUI.ReloadText.Size = UDim2.new(1, 0, 0, 20)
-    ammoUI.ReloadText.Position = UDim2.new(0, 0, 0, 60)
-    ammoUI.ReloadText.BackgroundTransparency = 1
-    ammoUI.ReloadText.TextColor3 = Color3.new(1, 1, 1)
-    ammoUI.ReloadText.TextStrokeTransparency = 0.5
-    ammoUI.ReloadText.Font = Enum.Font.SciFi
-    ammoUI.ReloadText.TextSize = 16
-    ammoUI.ReloadText.TextXAlignment = Enum.TextXAlignment.Left
-    ammoUI.ReloadText.Text = "[R] Перезарядка"
-    ammoUI.ReloadText.Visible = false
-    ammoUI.ReloadText.Parent = frame
+    local reloadText = Instance.new("TextLabel")
+    reloadText.Name = "ReloadStatus"
+    reloadText.Size = UDim2.new(1, 0, 0, 20)
+    reloadText.Position = UDim2.new(0, 0, 0, 60)
+    reloadText.BackgroundTransparency = 1
+    reloadText.TextColor3 = Color3.new(1, 1, 1)
+    reloadText.TextStrokeTransparency = 0.5
+    reloadText.Font = Enum.Font.SciFi
+    reloadText.TextSize = 16
+    reloadText.TextXAlignment = Enum.TextXAlignment.Left
+    reloadText.Text = "[R] Перезарядка"
+    reloadText.Visible = false
+    reloadText.Parent = frame
+
+    return {
+        AmmoText = ammoText,
+        ReloadText = reloadText
+    }
 end
 
-createAmmoDisplay()
+local ammoDisplay = createAmmoDisplay()
 
 local function updateAmmoDisplay()
-    ammoUI.AmmoText.Text = weaponState.Ammo .. "|" .. settings.MaxAmmo
-    ammoUI.AmmoText.TextColor3 = weaponState.Ammo == 0 and Color3.new(1, 0.3, 0.3) or Color3.new(1, 1, 1)
+    ammoDisplay.AmmoText.Text = weaponState.Ammo .. "|" .. settings.MaxAmmo
+    ammoDisplay.AmmoText.TextColor3 = weaponState.Ammo == 0 and Color3.new(1, 0.3, 0.3) or Color3.new(1, 1, 1)
 end
 
 local function reload()
     if weaponState.IsReloading or weaponState.Ammo == settings.MaxAmmo then return end
     
     weaponState.IsReloading = true
-    ammoUI.ReloadText.Visible = true
+    ammoDisplay.ReloadText.Visible = true
     
     local startTime = tick()
-    while tick() - startTime < settings.ReloadTime do
-        ammoUI.ReloadText.Text = "[R] Перезарядка: " .. math.floor((tick() - startTime)/settings.ReloadTime * 100) .. "%"
+    while tick() - startTime < settings.ReloadTime and weaponState.IsReloading do
+        ammoDisplay.ReloadText.Text = "[R] Перезарядка: " .. math.floor((tick() - startTime)/settings.ReloadTime * 100) .. "%"
         RunService.Heartbeat:Wait()
     end
     
     weaponState.Ammo = settings.MaxAmmo
     updateAmmoDisplay()
     weaponState.IsReloading = false
-    ammoUI.ReloadText.Visible = false
+    ammoDisplay.ReloadText.Visible = false
 end
 
 local function destroyBlocks(position)
@@ -132,49 +156,49 @@ local function destroyBlocks(position)
 end
 
 local function createBullet(startPos, direction)
-    local bulletPart = Instance.new("Part")
-    bulletPart.Size = Vector3.new(settings.BulletSize, settings.BulletSize, settings.BulletSize)
-    bulletPart.CFrame = CFrame.new(startPos, startPos + direction)
-    bulletPart.Anchored = false
-    bulletPart.CanCollide = false
-    bulletPart.Color = settings.BulletColor
-    bulletPart.Transparency = settings.BulletTransparency
-    bulletPart.Material = Enum.Material.Neon
-    bulletPart.Shape = Enum.PartType.Ball
-    bulletPart.Velocity = direction.Unit * settings.BulletSpeed
-    bulletPart.Parent = workspace
+    local bullet = Instance.new("Part")
+    bullet.Size = Vector3.new(settings.BulletSize, settings.BulletSize, settings.BulletSize)
+    bullet.CFrame = CFrame.new(startPos, startPos + direction)
+    bullet.Anchored = false
+    bullet.CanCollide = false
+    bullet.Color = settings.BulletColor
+    bullet.Transparency = settings.BulletTransparency
+    bullet.Material = Enum.Material.Neon
+    bullet.Shape = Enum.PartType.Ball
+    bullet.Velocity = direction.Unit * settings.BulletSpeed
+    bullet.Parent = workspace
     
-    game.Debris:AddItem(bulletPart, settings.MaxDistance/settings.BulletSpeed)
+    game.Debris:AddItem(bullet, settings.MaxDistance/settings.BulletSpeed)
     
-    bulletPart.Touched:Connect(function(hit)
-        if hit and hit.Parent then
-            -- Уничтожение блоков
-            destroyBlocks(hit.Position)
+    bullet.Touched:Connect(function(hit)
+        if not hit or not hit.Parent then return end
+        
+        destroyBlocks(hit.Position)
+        
+        local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid") or 
+                       (hit.Parent.Parent and hit.Parent.Parent:FindFirstChildOfClass("Humanoid"))
+        
+        if humanoid and humanoid ~= character:FindFirstChildOfClass("Humanoid") then
+            humanoid:TakeDamage(settings.Damage)
             
-            -- Убийство игроков
-            local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid") or 
-                           (hit.Parent.Parent and hit.Parent.Parent:FindFirstChildOfClass("Humanoid"))
-            
-            if humanoid and humanoid ~= character:FindFirstChildOfClass("Humanoid") then
-                humanoid:TakeDamage(settings.Damage)
-                
-                -- Эффект убийства
-                local explosion = Instance.new("Explosion")
-                explosion.Position = hit.Position
-                explosion.BlastPressure = 0
-                explosion.BlastRadius = 5
-                explosion.Parent = workspace
-            end
+            local explosion = Instance.new("Explosion")
+            explosion.Position = hit.Position
+            explosion.BlastPressure = 0
+            explosion.BlastRadius = 5
+            explosion.Parent = workspace
         end
-        bulletPart:Destroy()
+        
+        bullet:Destroy()
     end)
 end
 
-local function createWeaponModel()
+-- Создание оружия
+local function createWeapon()
     local tool = Instance.new("Tool")
     tool.Name = settings.WeaponName
     tool.RequiresHandle = true
     tool.CanBeDropped = false
+    _G.BoltRifleSystem.Tool = tool
 
     local handle = Instance.new("Part")
     handle.Name = "Handle"
@@ -199,6 +223,7 @@ local function createWeaponModel()
     reloadSound.Volume = 0.5
     reloadSound.Parent = handle
 
+    -- Функция стрельбы
     local function shoot()
         if weaponState.Ammo <= 0 then
             reload()
@@ -216,7 +241,6 @@ local function createWeaponModel()
         updateAmmoDisplay()
         shootSound:Play()
         
-        -- Эффект отдачи
         local originalPos = handle.Position
         handle.CFrame = handle.CFrame * CFrame.new(0, 0, -0.2)
         task.wait(0.05)
@@ -226,38 +250,34 @@ local function createWeaponModel()
         weaponState.IsShooting = false
     end
 
-    tool.Activated:Connect(shoot)
-
-    tool.Equipped:Connect(function()
+    -- Подключение событий
+    table.insert(_G.BoltRifleSystem.Connections, tool.Activated:Connect(shoot))
+    
+    table.insert(_G.BoltRifleSystem.Connections, tool.Equipped:Connect(function()
         weaponState.Equipped = true
-        ammoUI.ScreenGui.Enabled = true
+        _G.BoltRifleSystem.ScreenGui.Enabled = true
         tool.Grip = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(-90), 0, 0)
-    end)
-
-    tool.Unequipped:Connect(function()
+    end))
+    
+    table.insert(_G.BoltRifleSystem.Connections, tool.Unequipped:Connect(function()
         weaponState.Equipped = false
-        ammoUI.ScreenGui.Enabled = false
-    end)
+        _G.BoltRifleSystem.ScreenGui.Enabled = false
+    end))
 
     tool.Parent = localPlayer.Backpack
-    
-    return tool
 end
 
--- Основная инициализация
-_G.BoltRifleLoaded = ammoUI.ScreenGui
-
-local weapon = createWeaponModel()
-
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+-- Перезарядка по R
+table.insert(_G.BoltRifleSystem.Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.R then
         reload()
     end
-end)
+end))
 
+-- Автоперезарядка
 local function autoReload()
-    while true do
+    while _G.BoltRifleSystem do
         if weaponState.Ammo <= 0 and not weaponState.IsReloading then
             reload()
         end
@@ -267,31 +287,34 @@ end
 
 coroutine.wrap(autoReload)()
 
+-- Создание оружия
+createWeapon()
+
 -- Уведомление
 local notification = Instance.new("ScreenGui")
 notification.Name = "BoltRifleNotification"
 notification.Parent = game:GetService("CoreGui")
 
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 50)
-frame.Position = UDim2.new(0.5, -150, 1, -settings.AmmoDisplayOffset - 130)
-frame.AnchorPoint = Vector2.new(0.5, 1)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-frame.BackgroundTransparency = 0.5
-frame.BorderSizePixel = 0
-frame.Parent = notification
+local notifyFrame = Instance.new("Frame")
+notifyFrame.Size = UDim2.new(0, 300, 0, 50)
+notifyFrame.Position = UDim2.new(0.5, -150, 1, -150)
+notifyFrame.AnchorPoint = Vector2.new(0.5, 1)
+notifyFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+notifyFrame.BackgroundTransparency = 0.5
+notifyFrame.BorderSizePixel = 0
+notifyFrame.Parent = notification
 
-local text = Instance.new("TextLabel")
-text.Size = UDim2.new(1, 0, 1, 0)
-text.Text = "Винтовка 'Болт' активирована! (R - перезарядка)"
-text.TextColor3 = Color3.new(1, 1, 1)
-text.BackgroundTransparency = 1
-text.Font = Enum.Font.SciFi
-text.TextSize = 16
-text.Parent = frame
+local notifyText = Instance.new("TextLabel")
+notifyText.Size = UDim2.new(1, 0, 1, 0)
+notifyText.Text = "Винтовка 'Болт' активирована! (R - перезарядка)"
+notifyText.TextColor3 = Color3.new(1, 1, 1)
+notifyText.BackgroundTransparency = 1
+notifyText.Font = Enum.Font.SciFi
+notifyText.TextSize = 16
+notifyText.Parent = notifyFrame
 
-frame:TweenPosition(UDim2.new(0.5, -150, 1, -settings.AmmoDisplayOffset - 160), "Out", "Quad", 0.5, true)
+notifyFrame:TweenPosition(UDim2.new(0.5, -150, 1, -180), "Out", "Quad", 0.5, true)
 task.wait(3)
-frame:TweenPosition(UDim2.new(0.5, -150, 1, -settings.AmmoDisplayOffset - 130), "Out", "Quad", 0.5, true)
+notifyFrame:TweenPosition(UDim2.new(0.5, -150, 1, -150), "Out", "Quad", 0.5, true)
 task.wait(0.5)
 notification:Destroy()
