@@ -488,13 +488,81 @@ end
 
 infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
 
+-- Click TP
+local clickTpEnabled = false
+local clickTpConnection
+local function toggleClickTp()
+    clickTpEnabled = not clickTpEnabled
+    
+    if clickTpEnabled then
+        buttonSound:Play()
+        clickTpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
+        
+        clickTpConnection = mouse.Button1Down:Connect(function()
+            local target = mouse.Hit.Position
+            local character = player.Character
+            if character then
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if humanoidRootPart then
+                    humanoidRootPart.CFrame = CFrame.new(target.X, target.Y + 3, target.Z)
+                end
+            end
+        end)
+    else
+        buttonSound:Play()
+        clickTpIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
+        if clickTpConnection then
+            clickTpConnection:Disconnect()
+        end
+    end
+end
+
+clickTpButton.MouseButton1Click:Connect(toggleClickTp)
+
+-- Infinite Yield
+local function loadInfiniteYield()
+    buttonSound:Play()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+end
+
+infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
+
+-- Build a Boat
+local function loadBuildABoat()
+    buttonSound:Play()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/TheRealAsu/BABFT/refs/heads/main/Jan25_Source.lua'))()
+end
+
+buildBoatButton.MouseButton1Click:Connect(loadBuildABoat)
+
+-- Dead Rails
+local function loadDeadRails()
+    buttonSound:Play()
+    loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961"))()
+end
+
+deadRailsButton.MouseButton1Click:Connect(loadDeadRails)
+
 -- Custom Script
 local customScriptInput = ""
 local inputActive = false
 local inputGui = nil
+local inputConnection = nil
+
+local function executeCustomScript(scriptText)
+    if scriptText and scriptText ~= "" then
+        local success, err = pcall(function()
+            loadstring(scriptText)()
+        end)
+        if not success then
+            warn("Ошибка выполнения скрипта:", err)
+        end
+    end
+end
 
 local function showScriptWindow()
     if inputGui then inputGui:Destroy() end
+    if inputConnection then inputConnection:Disconnect() end
     
     inputGui = Instance.new("ScreenGui")
     inputGui.Name = "ScriptInputWindow"
@@ -546,12 +614,8 @@ local function showScriptWindow()
     
     executeButton.MouseButton1Click:Connect(function()
         buttonSound:Play()
-        local scriptText = textBox.Text
-        if scriptText and scriptText ~= "" then
-            pcall(function()
-                loadstring(scriptText)()
-            end)
-        end
+        customScriptInput = textBox.Text
+        executeCustomScript(customScriptInput)
         inputGui:Destroy()
         inputActive = false
     end)
@@ -562,19 +626,13 @@ local function showScriptWindow()
         inputActive = false
     end)
     
-    local inputConnection
     inputConnection = UIS.InputBegan:Connect(function(input, processed)
         if not processed then
             if input.KeyCode == Enum.KeyCode.Return then
-                local scriptText = textBox.Text
-                if scriptText and scriptText ~= "" then
-                    pcall(function()
-                        loadstring(scriptText)()
-                    end)
-                end
+                customScriptInput = textBox.Text
+                executeCustomScript(customScriptInput)
                 inputGui:Destroy()
                 inputActive = false
-                inputConnection:Disconnect()
             end
         end
     end)
@@ -582,7 +640,13 @@ end
 
 local function toggleCustomScript()
     buttonSound:Play()
-    if inputActive then return end
+    if inputActive then
+        inputActive = false
+        customScriptButton.Text = "Custom Script"
+        if inputGui then inputGui:Destroy() end
+        if inputConnection then inputConnection:Disconnect() end
+        return
+    end
     
     inputActive = true
     customScriptButton.Text = "[Введите скрипт]"
@@ -604,39 +668,25 @@ local function toggleCustomScript()
     hintText.TextWrapped = true
     hintText.Parent = hint
     
-    local mouseButton1Connection
-    mouseButton1Connection = UIS.InputBegan:Connect(function(input, processed)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and not processed then
-            hint:Destroy()
-            customScriptButton.Text = "Custom Script"
-            inputActive = false
-            mouseButton1Connection:Disconnect()
-        end
-    end)
-    
-    local inputConnection
     inputConnection = UIS.InputBegan:Connect(function(input, processed)
         if not processed then
-            if input.KeyCode == Enum.KeyCode.Return then
-                if customScriptInput ~= "" then
-                    pcall(function()
-                        loadstring(customScriptInput)()
-                    end)
-                end
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 hint:Destroy()
                 customScriptButton.Text = "Custom Script"
                 inputActive = false
                 inputConnection:Disconnect()
-                mouseButton1Connection:Disconnect()
-                
+            elseif input.KeyCode == Enum.KeyCode.Return then
+                executeCustomScript(customScriptInput)
+                hint:Destroy()
+                customScriptButton.Text = "Custom Script"
+                inputActive = false
+                inputConnection:Disconnect()
             elseif input.KeyCode == Enum.KeyCode.Backspace then
                 customScriptInput = customScriptInput:sub(1, -2)
                 customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
-                
             elseif input.KeyCode == Enum.KeyCode.Space then
                 customScriptInput = customScriptInput.." "
                 customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
-                
             elseif #input.KeyCode.Name == 1 then
                 customScriptInput = customScriptInput..input.KeyCode.Name:lower()
                 customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
@@ -644,8 +694,6 @@ local function toggleCustomScript()
                 if #customScriptInput > 20 then
                     hint:Destroy()
                     showScriptWindow()
-                    inputConnection:Disconnect()
-                    mouseButton1Connection:Disconnect()
                 end
             end
         end
@@ -658,12 +706,10 @@ customScriptButton.MouseButton1Click:Connect(toggleCustomScript)
 local function toggleAntiAfk() buttonSound:Play() end
 local function toggleFpsBoost() buttonSound:Play() end
 local function toggleBoltRifle() buttonSound:Play() end
-local function toggleClickTp() buttonSound:Play() end
 
 antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
 fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
 boltRifleButton.MouseButton1Click:Connect(toggleBoltRifle)
-clickTpButton.MouseButton1Click:Connect(toggleClickTp)
 
 -- Респавн персонажа
 player.CharacterAdded:Connect(function(character)
@@ -674,6 +720,10 @@ player.CharacterAdded:Connect(function(character)
     if infiniteJumpEnabled then
         toggleInfiniteJump()
         toggleInfiniteJump()
+    end
+    if clickTpEnabled then
+        toggleClickTp()
+        toggleClickTp()
     end
 end)
 
