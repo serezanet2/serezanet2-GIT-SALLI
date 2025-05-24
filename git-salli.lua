@@ -533,7 +533,7 @@ local function showScriptWindow()
     
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
-    closeButton.Text = "Закрыть (Esc)"
+    closeButton.Text = "Закрыть (ЛКМ)"
     closeButton.Size = UDim2.new(0.5, -15, 0, 40)
     closeButton.Position = UDim2.new(0.5, 5, 1, -45)
     closeButton.BackgroundColor3 = themeColors.dark.button
@@ -575,10 +575,6 @@ local function showScriptWindow()
                 inputGui:Destroy()
                 inputActive = false
                 inputConnection:Disconnect()
-            elseif input.KeyCode == Enum.KeyCode.Escape then
-                inputGui:Destroy()
-                inputActive = false
-                inputConnection:Disconnect()
             end
         end
     end)
@@ -601,12 +597,22 @@ local function toggleCustomScript()
     hintText.Size = UDim2.new(0, 300, 0, 50)
     hintText.Position = UDim2.new(0.5, -150, 0.8, 0)
     hintText.BackgroundTransparency = 1
-    hintText.Text = "Введите скрипт прямо на кнопке\n(Enter - подтвердить, Esc - отмена)"
+    hintText.Text = "Введите скрипт прямо на кнопке\n(Enter - подтвердить, ЛКМ - отмена)"
     hintText.TextColor3 = themeColors.dark.text
     hintText.Font = Enum.Font.SourceSansBold
     hintText.TextSize = 14
     hintText.TextWrapped = true
     hintText.Parent = hint
+    
+    local mouseButton1Connection
+    mouseButton1Connection = UIS.InputBegan:Connect(function(input, processed)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not processed then
+            hint:Destroy()
+            customScriptButton.Text = "Custom Script"
+            inputActive = false
+            mouseButton1Connection:Disconnect()
+        end
+    end)
     
     local inputConnection
     inputConnection = UIS.InputBegan:Connect(function(input, processed)
@@ -621,12 +627,7 @@ local function toggleCustomScript()
                 customScriptButton.Text = "Custom Script"
                 inputActive = false
                 inputConnection:Disconnect()
-                
-            elseif input.KeyCode == Enum.KeyCode.Escape then
-                hint:Destroy()
-                customScriptButton.Text = "Custom Script"
-                inputActive = false
-                inputConnection:Disconnect()
+                mouseButton1Connection:Disconnect()
                 
             elseif input.KeyCode == Enum.KeyCode.Backspace then
                 customScriptInput = customScriptInput:sub(1, -2)
@@ -644,6 +645,7 @@ local function toggleCustomScript()
                     hint:Destroy()
                     showScriptWindow()
                     inputConnection:Disconnect()
+                    mouseButton1Connection:Disconnect()
                 end
             end
         end
