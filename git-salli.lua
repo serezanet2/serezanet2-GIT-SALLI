@@ -14,7 +14,6 @@ end
 
 UIS.MouseIconEnabled = false
 
--- Курсор и GUI
 local cursorGui = Instance.new("ScreenGui")
 cursorGui.Name = "CustomCursor"
 cursorGui.DisplayOrder = 999999
@@ -253,7 +252,7 @@ local deadRailsButton = createButton(tab6Container, "DeadRailsButton", "Dead Rai
 local infiniteYieldButton = createButton(tab6Container, "InfiniteYieldButton", "Infinite Yield", UDim2.new(0, 10, 0, 90))
 local customScriptButton = createButton(tab6Container, "CustomScriptButton", "Custom Script (Ender)", UDim2.new(0, 10, 0, 135))
 
-local boltRifleButton = createButton(tab3Container, "BoltRifleButton", "Bolt Rifle", UDim2.new(0, 10, 0, 0))
+local boltRifleButton = createButton(tab3Container, "BoltRifleButton", "Винтовка болт", UDim2.new(0, 10, 0, 0))
 
 local noclipIndicator = addIndicator(noclipButton)
 local flyIndicator = addIndicator(flyButton)
@@ -267,7 +266,6 @@ buttonSound.SoundId = "rbxassetid://5828817939"
 buttonSound.Volume = 0.5
 buttonSound.Parent = SoundService
 
--- Fixed NoClip Functionality
 local noclipEnabled = false
 local noclipConnection = nil
 
@@ -285,13 +283,11 @@ local function toggleNoClip()
                 end
             end
         end
-        
-        -- Disconnect previous connection if exists
+
         if noclipConnection then
             noclipConnection:Disconnect()
         end
-        
-        -- Setup new connection
+
         noclipConnection = RunService.Stepped:Connect(function()
             if player.Character then
                 for _, part in ipairs(player.Character:GetDescendants()) do
@@ -301,27 +297,23 @@ local function toggleNoClip()
                 end
             end
         end)
-        
-        -- Handle current character
+
         if player.Character then
             noclipCharacter(player.Character)
         end
-        
-        -- Handle respawns
+
         player.CharacterAdded:Connect(function(character)
             noclipCharacter(character)
         end)
     else
         buttonSound:Play()
         noclipIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-        
-        -- Disconnect the connection
+
         if noclipConnection then
             noclipConnection:Disconnect()
             noclipConnection = nil
         end
-        
-        -- Restore collisions
+
         if player.Character then
             for _, part in ipairs(player.Character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -334,33 +326,28 @@ end
 
 noclipButton.MouseButton1Click:Connect(toggleNoClip)
 
--- Fixed Theme Switching Functionality
 local function updateTheme()
     local colors = lightTheme and themeColors.light or themeColors.dark
-    
-    -- Update main elements
+
     mainMenu.BackgroundColor3 = colors.background
     titleFrame.BackgroundColor3 = colors.secondary
     tabsFrame.BackgroundColor3 = colors.secondary
     avatar.BackgroundColor3 = colors.button
     playerInfo.TextColor3 = colors.text
-    
-    -- Update tabs
+
     for _, tab in ipairs(tabsFrame:GetChildren()) do
         if tab:IsA("TextButton") then
             tab.BackgroundColor3 = tab == tab1 and colors.accent or colors.button
             tab.TextColor3 = colors.text
         end
     end
-    
-    -- Update all buttons
+
     local function updateButtons(parent)
         for _, child in ipairs(parent:GetChildren()) do
             if child:IsA("TextButton") then
                 child.BackgroundColor3 = colors.button
                 child.TextColor3 = colors.text
-                
-                -- Update button hover effects
+
                 child.MouseEnter:Connect(function()
                     child.BackgroundColor3 = colors.buttonHover
                 end)
@@ -372,7 +359,6 @@ local function updateTheme()
         end
     end
     
-    -- Update buttons in all containers
     updateButtons(tab1Container)
     updateButtons(tab2Container)
     updateButtons(tab3Container)
@@ -387,39 +373,31 @@ themeButton.MouseButton1Click:Connect(function()
     updateTheme()
 end)
 
--- Rejoin (исправленная версия)
 rejoinButton.MouseButton1Click:Connect(function()
     buttonSound:Play()
     TeleportService:Teleport(game.PlaceId, player)
 end)
 
--- Reset (исправленная версия)
 resetButton.MouseButton1Click:Connect(function()
     buttonSound:Play()
     if player.Character then
         player.Character:BreakJoints()
     end
 end)
-
--- Отключение скрипта (исправленная версия)
 disableButton.MouseButton1Click:Connect(function()
     buttonSound:Play()
-    
-    -- Отключаем все активные функции
+
     if noclipEnabled then toggleNoClip() end
     if flyEnabled then toggleFly() end
     if freeCamEnabled then DisableFreeCam() end
-    
-    -- Восстанавливаем курсор
+
     if cursorConnection then cursorConnection:Disconnect() end
     UIS.MouseIconEnabled = true
-    
-    -- Удаляем GUI
+
     if ScreenGui then ScreenGui:Destroy() end
     if cursorGui then cursorGui:Destroy() end
 end)
 
--- Fly (полная версия без изменений)
 local flyEnabled = false
 local flySpeed = 50
 local flyConnection
@@ -494,7 +472,6 @@ local function toggleFly()
 end
 flyButton.MouseButton1Click:Connect(toggleFly)
 
--- FreeCam (полная версия)
 local freeCamEnabled = false
 local freeCamSpeed = 5
 local freeCamFastSpeed = 15
@@ -597,7 +574,6 @@ end
 freeCamButton.MouseButton1Click:Connect(ToggleFreeCam)
 RunService.RenderStepped:Connect(UpdateFreeCam)
 
--- Click TP (полная версия)
 local clickTpEnabled = false
 local clickTpConnection
 local function toggleClickTp()
@@ -629,7 +605,6 @@ local function toggleClickTp()
 end
 clickTpButton.MouseButton1Click:Connect(toggleClickTp)
 
--- Infinite Jump (полная версия)
 local infiniteJumpEnabled = false
 local infiniteJumpConnection
 local function toggleInfiniteJump()
@@ -657,9 +632,7 @@ local function toggleInfiniteJump()
 end
 infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
 
--- Bolt Rifle (полная версия)
 local boltRifleEnabled = false
-local boltRifleScript = nil
 local function toggleBoltRifle()
     boltRifleEnabled = not boltRifleEnabled
     
@@ -668,31 +641,21 @@ local function toggleBoltRifle()
         boltRifleIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
         
         local success, err = pcall(function()
-            boltRifleScript = loadstring(game:HttpGet("https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/GIT-SALLI-%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%B1%D0%BE%D0%BB%D1%82.lua"))()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/GIT-SALLI-%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%B1%D0%BE%D0%BB%D1%82.lua"))()
         end)
         
         if not success then
-            warn("Ошибка загрузки Bolt Rifle:", err)
+            warn("Ошибка загрузки скрипта винтовки:", err)
             boltRifleEnabled = false
             boltRifleIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
         end
     else
         buttonSound:Play()
         boltRifleIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-        
-        if boltRifleScript then
-            pcall(function()
-                if _G.DisableBoltRifle then
-                    _G.DisableBoltRifle()
-                end
-                boltRifleScript = nil
-            end)
-        end
     end
 end
 boltRifleButton.MouseButton1Click:Connect(toggleBoltRifle)
 
--- Anti AFK (полная версия)
 local antiAfkEnabled = false
 local antiAfkConnection
 local function toggleAntiAfk()
@@ -713,7 +676,6 @@ local function toggleAntiAfk()
 end
 antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
 
--- FPS Boost (полная версия)
 local fpsBoostEnabled = false
 local function toggleFpsBoost()
     fpsBoostEnabled = not fpsBoostEnabled
@@ -735,7 +697,6 @@ local function toggleFpsBoost()
 end
 fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
 
--- Загрузка скриптов (полная версия)
 local function loadScript(url)
     buttonSound:Play()
     local success, err = pcall(function()
@@ -758,7 +719,6 @@ deadRailsButton.MouseButton1Click:Connect(function()
     loadScript("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961")
 end)
 
--- Custom Script (Ender режим)
 local customScriptActive = false
 local customScriptConnection
 local function toggleCustomScriptMode()
@@ -806,7 +766,6 @@ local function toggleCustomScriptMode()
 end
 customScriptButton.MouseButton1Click:Connect(toggleCustomScriptMode)
 
--- Управление меню
 local menuVisible = true
 local function toggleMenu()
     buttonSound:Play()
@@ -823,7 +782,6 @@ local function toggleMenu()
     end
 end
 
--- Горячие клавиши
 UIS.InputBegan:Connect(function(input, processed)
     if not processed then
         if input.KeyCode == Enum.KeyCode.LeftShift then
@@ -834,24 +792,15 @@ UIS.InputBegan:Connect(function(input, processed)
     end
 end)
 
--- Обработка респавна
 player.CharacterAdded:Connect(function(character)
     if noclipEnabled then toggleNoClip() end
     if flyEnabled then 
         task.wait(0.5)
         toggleFly()
     end
-    if boltRifleEnabled then
-        task.wait(1)
-        toggleBoltRifle()
-    end
 end)
 
--- Фиксы при смерти
 player.CharacterRemoving:Connect(function()
     if noclipEnabled then toggleNoClip() end
     if flyEnabled then toggleFly() end
-    if boltRifleEnabled then toggleBoltRifle() end
 end)
-
-print("Functional Menu полностью загружен! Используйте LeftShift для открытия меню")
