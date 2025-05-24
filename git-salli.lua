@@ -390,6 +390,158 @@ end
 freeCamButton.MouseButton1Click:Connect(ToggleFreeCam)
 RunService.RenderStepped:Connect(UpdateFreeCam)
 
+-- NoClip функция (полностью переработанная)
+local noclipEnabled = false
+local noclipConnection
+local function toggleNoClip()
+    noclipEnabled = not noclipEnabled
+    
+    if noclipEnabled then
+        buttonSound:Play()
+        noclipIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
+        
+        local function noclipCharacter(character)
+            for _, part in ipairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+        
+        -- Применить к текущему персонажу
+        if player.Character then
+            noclipCharacter(player.Character)
+        end
+        
+        noclipConnection = player.CharacterAdded:Connect(noclipCharacter)
+        
+        -- Постоянная проверка коллизий
+        RunService.Stepped:Connect(function()
+            if player.Character then
+                for _, part in ipairs(player.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        buttonSound:Play()
+        noclipIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+        
+        -- Восстановить коллизии
+        if player.Character then
+            for _, part in ipairs(player.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+noclipButton.MouseButton1Click:Connect(toggleNoClip)
+
+-- Fly функция (полностью переработанная)
+local flyEnabled = false
+local flySpeed = 50
+local flyConnection
+local bodyGyro, bodyVelocity
+local function toggleFly()
+    flyEnabled = not flyEnabled
+    
+    if flyEnabled then
+        buttonSound:Play()
+        flyIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
+        
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            
+            if humanoid and rootPart then
+                humanoid.PlatformStand = true
+                
+                -- Создаем контролы для полета
+                bodyGyro = Instance.new("BodyGyro")
+                bodyGyro.P = 10000
+                bodyGyro.MaxTorque = Vector3.new(100000, 100000, 100000)
+                bodyGyro.CFrame = rootPart.CFrame
+                bodyGyro.Parent = rootPart
+                
+                bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                bodyVelocity.MaxForce = Vector3.new(10000, 10000, 10000)
+                bodyVelocity.Parent = rootPart
+                
+                -- Функция обновления полета
+                flyConnection = RunService.Heartbeat:Connect(function(dt)
+                    if not character or not rootPart or not bodyGyro or not bodyVelocity then return end
+                    
+                    local camera = workspace.CurrentCamera
+                    local moveDirection = Vector3.new()
+                    
+                    -- Управление WASD
+                    if UIS:IsKeyDown(Enum.KeyCode.W) then moveDirection = moveDirection + camera.CFrame.LookVector end
+                    if UIS:IsKeyDown(Enum.KeyCode.S) then moveDirection = moveDirection - camera.CFrame.LookVector end
+                    if UIS:IsKeyDown(Enum.KeyCode.A) then moveDirection = moveDirection - camera.CFrame.RightVector end
+                    if UIS:IsKeyDown(Enum.KeyCode.D) then moveDirection = moveDirection + camera.CFrame.RightVector end
+                    
+                    -- Управление высотой EQ
+                    if UIS:IsKeyDown(Enum.KeyCode.E) then moveDirection = moveDirection + Vector3.new(0, 1, 0) end
+                    if UIS:IsKeyDown(Enum.KeyCode.Q) then moveDirection = moveDirection + Vector3.new(0, -1, 0) end
+                    
+                    -- Нормализация и применение скорости
+                    if moveDirection.Magnitude > 0 then
+                        moveDirection = moveDirection.Unit * flySpeed
+                    end
+                    
+                    -- Применение движения
+                    bodyVelocity.Velocity = moveDirection
+                    bodyGyro.CFrame = camera.CFrame
+                end)
+            end
+        end
+    else
+        buttonSound:Play()
+        flyIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
+        
+        if flyConnection then
+            flyConnection:Disconnect()
+        end
+        
+        local character = player.Character
+        if character then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.PlatformStand = false
+            end
+            
+            if bodyGyro then bodyGyro:Destroy() end
+            if bodyVelocity then bodyVelocity:Destroy() end
+        end
+    end
+end
+
+flyButton.MouseButton1Click:Connect(toggleFly)
+
+-- Управление курсором (переработанное)
+local function updateCursorBehavior()
+    if freeCamEnabled then
+        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+        UIS.MouseIconEnabled = false
+    elseif menuVisible then
+        UIS.MouseBehavior = Enum.MouseBehavior.Default
+        UIS.MouseIconEnabled = false -- Используем кастомный курсор
+    else
+        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+        UIS.MouseIconEnabled = false
+    end
+end
+
 -- Функция смены темы
 local function toggleTheme()
     buttonSound:Play()
@@ -402,12 +554,12 @@ local function toggleTheme()
     avatar.BackgroundColor3 = colors.button
     playerInfo.TextColor3 = colors.text
     
-    tab1.BackgroundColor3 = tab1.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-    tab2.BackgroundColor3 = tab2.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-    tab3.BackgroundColor3 = tab3.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-    tab4.BackgroundColor3 = tab4.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-    tab5.BackgroundColor3 = tab5.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-    tab6.BackgroundColor3 = tab6.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
+    tab1.BackgroundColor3 = tab1Container.Visible and colors.accent or colors.button
+    tab2.BackgroundColor3 = tab2Container.Visible and colors.accent or colors.button
+    tab3.BackgroundColor3 = tab3Container.Visible and colors.accent or colors.button
+    tab4.BackgroundColor3 = tab4Container.Visible and colors.accent or colors.button
+    tab5.BackgroundColor3 = tab5Container.Visible and colors.accent or colors.button
+    tab6.BackgroundColor3 = tab6Container.Visible and colors.accent or colors.button
     
     for _, container in ipairs({tab1Container, tab2Container, tab3Container, tab4Container, tab5Container, tab6Container}) do
         for _, child in ipairs(container:GetChildren()) do
@@ -421,45 +573,87 @@ end
 
 themeButton.MouseButton1Click:Connect(toggleTheme)
 
--- Функция реджоина
-local function rejoinGame()
-    buttonSound:Play()
-    TeleportService:Teleport(game.PlaceId, player)
-end
-
-rejoinButton.MouseButton1Click:Connect(rejoinGame)
-
--- Функция ресета персонажа
+-- Ресет персонажа с проверкой
 local function resetCharacter()
     buttonSound:Play()
-    local character = player.Character
-    if character then
-        character:BreakJoints()
+    if player.Character then
+        player.Character:BreakJoints()
     end
 end
 
 resetButton.MouseButton1Click:Connect(resetCharacter)
 
--- Функция отключения скрипта
+-- Rejoin с обработкой ошибок
+local function rejoinGame()
+    buttonSound:Play()
+    pcall(function()
+        TeleportService:Teleport(game.PlaceId, player)
+    end)
+end
+
+rejoinButton.MouseButton1Click:Connect(rejoinGame)
+
+-- Отключение скрипта с очисткой
 local function disableScript()
     buttonSound:Play()
     
+    -- Отключаем все функции
     if freeCamEnabled then DisableFreeCam() end
+    if noclipEnabled then toggleNoClip() end
+    if flyEnabled then toggleFly() end
+    
+    -- Восстанавливаем курсор
     if cursorConnection then cursorConnection:Disconnect() end
-    
-    ScreenGui:Destroy()
-    cursorGui:Destroy()
     UIS.MouseIconEnabled = true
+    UIS.MouseBehavior = Enum.MouseBehavior.Default
     
-    local character = player.Character
-    if character then
-        character:BreakJoints()
+    -- Удаляем GUI
+    if ScreenGui then ScreenGui:Destroy() end
+    if cursorGui then cursorGui:Destroy() end
+    
+    -- Ресет персонажа
+    if player.Character then
+        player.Character:BreakJoints()
     end
 end
 
 disableButton.MouseButton1Click:Connect(disableScript)
 
--- Infinite Jump
+-- Click TP (улучшенная версия)
+local clickTpEnabled = false
+local clickTpConnection
+local function toggleClickTp()
+    clickTpEnabled = not clickTpEnabled
+    
+    if clickTpEnabled then
+        buttonSound:Play()
+        clickTpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
+        
+        clickTpConnection = mouse.Button1Down:Connect(function()
+            if not player.Character then return end
+            
+            local target = mouse.Hit.Position
+            local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                -- Плавный телепорт с эффектом
+                local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad)
+                TweenService:Create(humanoidRootPart, tweenInfo, {
+                    CFrame = CFrame.new(target.X, target.Y + 3, target.Z)
+                }):Play()
+            end
+        end)
+    else
+        buttonSound:Play()
+        clickTpIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
+        if clickTpConnection then
+            clickTpConnection:Disconnect()
+        end
+    end
+end
+
+clickTpButton.MouseButton1Click:Connect(toggleClickTp)
+
+-- Infinite Jump (исправленная версия)
 local infiniteJumpEnabled = false
 local infiniteJumpConnection
 local function toggleInfiniteJump()
@@ -468,10 +662,10 @@ local function toggleInfiniteJump()
     if infiniteJumpEnabled then
         buttonSound:Play()
         infiniteJumpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
+        
         infiniteJumpConnection = UIS.JumpRequest:Connect(function()
-            local character = player.Character
-            if character then
-                local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if player.Character then
+                local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
                 if humanoid then
                     humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                 end
@@ -488,62 +682,80 @@ end
 
 infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
 
--- Click TP
-local clickTpEnabled = false
-local clickTpConnection
-local function toggleClickTp()
-    clickTpEnabled = not clickTpEnabled
+-- Anti AFK (рабочая версия)
+local antiAfkEnabled = false
+local antiAfkConnection
+local function toggleAntiAfk()
+    antiAfkEnabled = not antiAfkEnabled
     
-    if clickTpEnabled then
+    if antiAfkEnabled then
         buttonSound:Play()
-        clickTpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-        
-        clickTpConnection = mouse.Button1Down:Connect(function()
-            local target = mouse.Hit.Position
-            local character = player.Character
-            if character then
-                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    humanoidRootPart.CFrame = CFrame.new(target.X, target.Y + 3, target.Z)
-                end
-            end
+        antiAfkConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
+            game:GetService("VirtualUser"):CaptureController()
+            game:GetService("VirtualUser"):ClickButton2(Vector2.new())
         end)
     else
         buttonSound:Play()
-        clickTpIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-        if clickTpConnection then
-            clickTpConnection:Disconnect()
+        if antiAfkConnection then
+            antiAfkConnection:Disconnect()
         end
     end
 end
 
-clickTpButton.MouseButton1Click:Connect(toggleClickTp)
+antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
+
+-- FPS Boost (реальная оптимизация)
+local fpsBoostEnabled = false
+local function toggleFpsBoost()
+    fpsBoostEnabled = not fpsBoostEnabled
+    
+    if fpsBoostEnabled then
+        buttonSound:Play()
+        -- Оптимизация графики
+        settings().Rendering.QualityLevel = 1
+        settings().Rendering.MeshCacheSize = 0
+        settings().Rendering.TextureCacheSize = 0
+        game:GetService("Lighting").GlobalShadows = false
+        game:GetService("Lighting").FantasySky:Destroy()
+    else
+        buttonSound:Play()
+        -- Восстановление настроек
+        settings().Rendering.QualityLevel = 10
+        settings().Rendering.MeshCacheSize = 100
+        settings().Rendering.TextureCacheSize = 100
+        game:GetService("Lighting").GlobalShadows = true
+    end
+end
+
+fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
+
+-- Загрузка популярных скриптов
+local function loadScript(url)
+    buttonSound:Play()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(url))()
+    end)
+    if not success then
+        warn("Ошибка загрузки скрипта:", err)
+    end
+end
 
 -- Infinite Yield
-local function loadInfiniteYield()
-    buttonSound:Play()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-end
-
-infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
+infiniteYieldButton.MouseButton1Click:Connect(function()
+    loadScript("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source")
+end)
 
 -- Build a Boat
-local function loadBuildABoat()
-    buttonSound:Play()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/TheRealAsu/BABFT/refs/heads/main/Jan25_Source.lua'))()
-end
-
-buildBoatButton.MouseButton1Click:Connect(loadBuildABoat)
+buildBoatButton.MouseButton1Click:Connect(function()
+    loadScript('https://raw.githubusercontent.com/TheRealAsu/BABFT/main/Jan25_Source.lua')
+end)
 
 -- Dead Rails
-local function loadDeadRails()
-    buttonSound:Play()
-    loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961"))()
-end
+deadRailsButton.MouseButton1Click:Connect(function()
+    loadScript("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961")
+end)
 
-deadRailsButton.MouseButton1Click:Connect(loadDeadRails)
-
--- Custom Script
+-- Custom Script (безопасная версия)
 local customScriptInput = ""
 local inputActive = false
 local inputGui = nil
@@ -552,178 +764,87 @@ local inputConnection = nil
 local function executeCustomScript(scriptText)
     if scriptText and scriptText ~= "" then
         local success, err = pcall(function()
-            loadstring(scriptText)()
+            local fn, err2 = loadstring(scriptText)
+            if fn then
+                fn()
+            else
+                warn("Ошибка компиляции:", err2)
+            end
         end)
         if not success then
-            warn("Ошибка выполнения скрипта:", err)
+            warn("Ошибка выполнения:", err)
         end
     end
 end
 
-local function showScriptWindow()
+customScriptButton.MouseButton1Click:Connect(function()
+    buttonSound:Play()
+    
+    -- Создаем окно ввода
     if inputGui then inputGui:Destroy() end
-    if inputConnection then inputConnection:Disconnect() end
     
     inputGui = Instance.new("ScreenGui")
-    inputGui.Name = "ScriptInputWindow"
-    inputGui.ResetOnSpawn = false
+    inputGui.Name = "ScriptInput"
     inputGui.Parent = player.PlayerGui
     
-    local inputFrame = Instance.new("Frame")
-    inputFrame.Size = UDim2.new(0, 400, 0, 250)
-    inputFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
-    inputFrame.BackgroundColor3 = themeColors.dark.inputField
-    inputFrame.BorderSizePixel = 0
-    inputFrame.Parent = inputGui
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 400, 0, 300)
+    frame.Position = UDim2.new(0.5, -200, 0.5, -150)
+    frame.BackgroundColor3 = themeColors.dark.background
+    frame.Parent = inputGui
     
     local textBox = Instance.new("TextBox")
     textBox.Size = UDim2.new(1, -20, 1, -60)
     textBox.Position = UDim2.new(0, 10, 0, 10)
-    textBox.BackgroundColor3 = themeColors.dark.secondary
-    textBox.TextColor3 = themeColors.dark.text
     textBox.Text = customScriptInput
-    textBox.ClearTextOnFocus = false
     textBox.TextWrapped = true
     textBox.TextXAlignment = Enum.TextXAlignment.Left
     textBox.TextYAlignment = Enum.TextYAlignment.Top
-    textBox.Parent = inputFrame
+    textBox.ClearTextOnFocus = false
+    textBox.Parent = frame
     
-    local executeButton = Instance.new("TextButton")
-    executeButton.Name = "ExecuteButton"
-    executeButton.Text = "Выполнить (Enter)"
-    executeButton.Size = UDim2.new(0.5, -15, 0, 40)
-    executeButton.Position = UDim2.new(0, 10, 1, -45)
-    executeButton.BackgroundColor3 = themeColors.dark.button
-    executeButton.TextColor3 = themeColors.dark.text
-    executeButton.Font = Enum.Font.SourceSansBold
-    executeButton.TextSize = 16
-    executeButton.Parent = inputFrame
+    local executeBtn = Instance.new("TextButton")
+    executeBtn.Size = UDim2.new(0.5, -15, 0, 40)
+    executeBtn.Position = UDim2.new(0, 10, 1, -45)
+    executeBtn.Text = "Execute"
+    executeBtn.Parent = frame
     
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Text = "Закрыть (ЛКМ)"
-    closeButton.Size = UDim2.new(0.5, -15, 0, 40)
-    closeButton.Position = UDim2.new(0.5, 5, 1, -45)
-    closeButton.BackgroundColor3 = themeColors.dark.button
-    closeButton.TextColor3 = themeColors.dark.text
-    closeButton.Font = Enum.Font.SourceSansBold
-    closeButton.TextSize = 16
-    closeButton.Parent = inputFrame
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0.5, -15, 0, 40)
+    closeBtn.Position = UDim2.new(0.5, 5, 1, -45)
+    closeBtn.Text = "Close"
+    closeBtn.Parent = frame
     
-    textBox:CaptureFocus()
-    
-    executeButton.MouseButton1Click:Connect(function()
+    executeBtn.MouseButton1Click:Connect(function()
         buttonSound:Play()
         customScriptInput = textBox.Text
         executeCustomScript(customScriptInput)
         inputGui:Destroy()
-        inputActive = false
     end)
     
-    closeButton.MouseButton1Click:Connect(function()
+    closeBtn.MouseButton1Click:Connect(function()
         buttonSound:Play()
         inputGui:Destroy()
-        inputActive = false
     end)
     
-    inputConnection = UIS.InputBegan:Connect(function(input, processed)
-        if not processed then
-            if input.KeyCode == Enum.KeyCode.Return then
-                customScriptInput = textBox.Text
-                executeCustomScript(customScriptInput)
-                inputGui:Destroy()
-                inputActive = false
-            end
-        end
-    end)
-end
+    textBox:CaptureFocus()
+end)
 
-local function toggleCustomScript()
-    buttonSound:Play()
-    if inputActive then
-        inputActive = false
-        customScriptButton.Text = "Custom Script"
-        if inputGui then inputGui:Destroy() end
-        if inputConnection then inputConnection:Disconnect() end
-        return
-    end
-    
-    inputActive = true
-    customScriptButton.Text = "[Введите скрипт]"
-    customScriptInput = ""
-    
-    local hint = Instance.new("ScreenGui")
-    hint.Name = "ScriptInputHint"
-    hint.ResetOnSpawn = false
-    hint.Parent = player.PlayerGui
-    
-    local hintText = Instance.new("TextLabel")
-    hintText.Size = UDim2.new(0, 300, 0, 50)
-    hintText.Position = UDim2.new(0.5, -150, 0.8, 0)
-    hintText.BackgroundTransparency = 1
-    hintText.Text = "Введите скрипт прямо на кнопке\n(Enter - подтвердить, ЛКМ - отмена)"
-    hintText.TextColor3 = themeColors.dark.text
-    hintText.Font = Enum.Font.SourceSansBold
-    hintText.TextSize = 14
-    hintText.TextWrapped = true
-    hintText.Parent = hint
-    
-    inputConnection = UIS.InputBegan:Connect(function(input, processed)
-        if not processed then
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                hint:Destroy()
-                customScriptButton.Text = "Custom Script"
-                inputActive = false
-                inputConnection:Disconnect()
-            elseif input.KeyCode == Enum.KeyCode.Return then
-                executeCustomScript(customScriptInput)
-                hint:Destroy()
-                customScriptButton.Text = "Custom Script"
-                inputActive = false
-                inputConnection:Disconnect()
-            elseif input.KeyCode == Enum.KeyCode.Backspace then
-                customScriptInput = customScriptInput:sub(1, -2)
-                customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
-            elseif input.KeyCode == Enum.KeyCode.Space then
-                customScriptInput = customScriptInput.." "
-                customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
-            elseif #input.KeyCode.Name == 1 then
-                customScriptInput = customScriptInput..input.KeyCode.Name:lower()
-                customScriptButton.Text = "[Введите скрипт]\n"..customScriptInput
-                
-                if #customScriptInput > 20 then
-                    hint:Destroy()
-                    showScriptWindow()
-                end
-            end
-        end
-    end)
-end
-
-customScriptButton.MouseButton1Click:Connect(toggleCustomScript)
-
--- Остальные функции
-local function toggleAntiAfk() buttonSound:Play() end
-local function toggleFpsBoost() buttonSound:Play() end
-local function toggleBoltRifle() buttonSound:Play() end
-
-antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
-fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
-boltRifleButton.MouseButton1Click:Connect(toggleBoltRifle)
-
--- Респавн персонажа
+-- Обработка респавна персонажа
 player.CharacterAdded:Connect(function(character)
-    if freeCamEnabled then
-        DisableFreeCam()
-        EnableFreeCam()
+    -- Автоматически применяем включенные функции
+    if noclipEnabled then
+        for _, part in ipairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
     end
-    if infiniteJumpEnabled then
-        toggleInfiniteJump()
-        toggleInfiniteJump()
-    end
-    if clickTpEnabled then
-        toggleClickTp()
-        toggleClickTp()
+    
+    if flyEnabled then
+        toggleFly()
+        task.wait(0.1)
+        toggleFly()
     end
 end)
 
@@ -734,23 +855,25 @@ local function toggleMenu()
     menuVisible = not menuVisible
     
     if menuVisible then
-        TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
             Position = UDim2.new(0, 10, 0, 10)
         }):Play()
     else
-        TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
             Position = UDim2.new(0, -510, 0, 10)
         }):Play()
     end
+    
+    updateCursorBehavior()
 end
 
+-- Горячие клавиши
 UIS.InputBegan:Connect(function(input, processed)
-    if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
-        toggleMenu()
-    end
-    if not processed and input.KeyCode == Enum.KeyCode.F and freeCamEnabled then
-        DisableFreeCam()
+    if not processed then
+        if input.KeyCode == Enum.KeyCode.LeftShift then
+            toggleMenu()
+        elseif input.KeyCode == Enum.KeyCode.F and freeCamEnabled then
+            DisableFreeCam()
+        end
     end
 end)
-
-toggleMenu()
