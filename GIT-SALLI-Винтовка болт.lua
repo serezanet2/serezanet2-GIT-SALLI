@@ -1,20 +1,15 @@
 -- Универсальный скрипт для винтовки "Болт" (Мёртвые рельсы)
--- Версия с корректным отключением при повторной активации
+-- Версия с мгновенным убийством и прозрачным интерфейсом
 
 -- Проверка на повторное выполнение
 if _G.BoltRifleSystem then
-    -- Удаляем все созданные элементы
-    if _G.BoltRifleSystem.ScreenGui then
+    pcall(function()
         _G.BoltRifleSystem.ScreenGui:Destroy()
-    end
-    if _G.BoltRifleSystem.Tool then
         _G.BoltRifleSystem.Tool:Destroy()
-    end
-    if _G.BoltRifleSystem.Connections then
-        for _, connection in pairs(_G.BoltRifleSystem.Connections) do
-            connection:Disconnect()
+        for _, conn in pairs(_G.BoltRifleSystem.Connections) do
+            conn:Disconnect()
         end
-    end
+    end)
     _G.BoltRifleSystem = nil
     return
 end
@@ -33,7 +28,7 @@ local TweenService = game:GetService("TweenService")
 -- Настройки оружия
 local settings = {
     WeaponName = "Болт (Убийца)",
-    Damage = math.huge,
+    Damage = math.huge, -- Мгновенное убийство
     FireRate = 0.1,
     MaxDistance = 1000,
     MaxAmmo = 6,
@@ -43,8 +38,8 @@ local settings = {
     BulletSize = 0.2,
     BulletDuration = 0.2,
     BulletSpeed = 2000,
-    DestroyBlocks = true,
-    BlockDestroyRadius = 3
+    DestroyBlocks = false, -- Отключено разрушение блоков
+    BlockDestroyRadius = 0
 }
 
 -- Состояние оружия
@@ -61,14 +56,61 @@ local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
--- Создание системы управления
+-- Глобальная система
 _G.BoltRifleSystem = {
     ScreenGui = nil,
     Tool = nil,
     Connections = {}
 }
 
--- Создание интерфейса
+-- Создание эффекта попадания
+local function createHitEffect(position)
+    local explosion = Instance.new("Explosion")
+    explosion.Position = position
+    explosion.BlastPressure = 0
+    explosion.BlastRadius = 5
+    explosion.ExplosionType = Enum.ExplosionType.NoCraters
+    explosion.DestroyJointRadiusPercent = 0
+    explosion.Parent = workspace
+end
+
+-- Создание пули
+local function createBullet(startPos, direction)
+    local bullet = Instance.new("Part")
+    bullet.Size = Vector3.new(settings.BulletSize, settings.BulletSize, settings.BulletSize)
+    bullet.CFrame = CFrame.new(startPos, startPos + direction)
+    bullet.Anchored = false
+    bullet.CanCollide = false
+    bullet.Color = settings.BulletColor
+    bullet.Transparency = settings.BulletTransparency
+    bullet.Material = Enum.Material.Neon
+    bullet.Shape = Enum.PartType.Ball
+    bullet.Velocity = direction.Unit * settings.BulletSpeed
+    bullet.Parent = workspace
+    
+    game.Debris:AddItem(bullet, settings.MaxDistance/settings.BulletSpeed)
+    
+    bullet.Touched:Connect(function(hit)
+        if not hit or not hit.Parent then return end
+        
+        local hitPos = bullet.Position
+        bullet:Destroy()
+        
+        -- Эффект попадания
+        createHitEffect(hitPos)
+        
+        -- Поиск жертвы
+        local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid") or 
+                       (hit.Parent.Parent and hit.Parent.Parent:FindFirstChildOfClass("Humanoid"))
+        
+        -- Мгновенное убийство
+        if humanoid and humanoid ~= character:FindFirstChildOfClass("Humanoid") then
+            humanoid:TakeDamage(settings.Damage)
+        end
+    end)
+end
+
+-- Создание интерфейса с прозрачным фоном
 local function createAmmoDisplay()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "BoltRifleUI"
@@ -83,7 +125,7 @@ local function createAmmoDisplay()
     frame.Size = UDim2.new(0, 200, 0, 80)
     frame.Position = UDim2.new(0, 20, 1, -100)
     frame.AnchorPoint = Vector2.new(0, 1)
-    frame.BackgroundTransparency = 1
+    frame.BackgroundTransparency = 1 -- Полностью прозрачный фон
     frame.Parent = screenGui
 
     local ammoText = Instance.new("TextLabel")
@@ -143,53 +185,6 @@ local function reload()
     updateAmmoDisplay()
     weaponState.IsReloading = false
     ammoDisplay.ReloadText.Visible = false
-end
-
-local function destroyBlocks(position)
-    if not settings.DestroyBlocks then return end
-    
-    for _, part in ipairs(workspace:GetPartsInRadius(position, settings.BlockDestroyRadius)) do
-        if part:IsA("BasePart") and part.Parent ~= character then
-            part:Destroy()
-        end
-    end
-end
-
-local function createBullet(startPos, direction)
-    local bullet = Instance.new("Part")
-    bullet.Size = Vector3.new(settings.BulletSize, settings.BulletSize, settings.BulletSize)
-    bullet.CFrame = CFrame.new(startPos, startPos + direction)
-    bullet.Anchored = false
-    bullet.CanCollide = false
-    bullet.Color = settings.BulletColor
-    bullet.Transparency = settings.BulletTransparency
-    bullet.Material = Enum.Material.Neon
-    bullet.Shape = Enum.PartType.Ball
-    bullet.Velocity = direction.Unit * settings.BulletSpeed
-    bullet.Parent = workspace
-    
-    game.Debris:AddItem(bullet, settings.MaxDistance/settings.BulletSpeed)
-    
-    bullet.Touched:Connect(function(hit)
-        if not hit or not hit.Parent then return end
-        
-        destroyBlocks(hit.Position)
-        
-        local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid") or 
-                       (hit.Parent.Parent and hit.Parent.Parent:FindFirstChildOfClass("Humanoid"))
-        
-        if humanoid and humanoid ~= character:FindFirstChildOfClass("Humanoid") then
-            humanoid:TakeDamage(settings.Damage)
-            
-            local explosion = Instance.new("Explosion")
-            explosion.Position = hit.Position
-            explosion.BlastPressure = 0
-            explosion.BlastRadius = 5
-            explosion.Parent = workspace
-        end
-        
-        bullet:Destroy()
-    end)
 end
 
 -- Создание оружия
