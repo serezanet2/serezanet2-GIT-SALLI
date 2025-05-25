@@ -1,7 +1,3 @@
--- Универсальный скрипт для винтовки "Болт" (Мёртвые рельсы)
--- Версия с мгновенным убийством и прозрачным интерфейсом
-
--- Проверка на повторное выполнение
 if _G.BoltRifleSystem then
     pcall(function()
         _G.BoltRifleSystem.ScreenGui:Destroy()
@@ -14,21 +10,18 @@ if _G.BoltRifleSystem then
     return
 end
 
--- Ожидание загрузки игры
 if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
--- Сервисы
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
--- Настройки оружия
 local settings = {
-    WeaponName = "Болт (Убийца)",
-    Damage = math.huge, -- Мгновенное убийство
+    WeaponName = "Винтовка болт",
+    Damage = math.huge,
     FireRate = 0.1,
     MaxDistance = 1000,
     MaxAmmo = 6,
@@ -38,11 +31,10 @@ local settings = {
     BulletSize = 0.2,
     BulletDuration = 0.2,
     BulletSpeed = 2000,
-    DestroyBlocks = false, -- Отключено разрушение блоков
-    BlockDestroyRadius = 0
+    DestroyBlocks = true,
+    BlockDestroyRadius = 10
 }
 
--- Состояние оружия
 local weaponState = {
     Ammo = settings.MaxAmmo,
     IsReloading = false,
@@ -50,20 +42,17 @@ local weaponState = {
     Equipped = false
 }
 
--- Локальные переменные
 local localPlayer = Players.LocalPlayer
 local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
 local mouse = localPlayer:GetMouse()
 local camera = workspace.CurrentCamera
 
--- Глобальная система
 _G.BoltRifleSystem = {
     ScreenGui = nil,
     Tool = nil,
     Connections = {}
 }
 
--- Создание эффекта попадания
 local function createHitEffect(position)
     local explosion = Instance.new("Explosion")
     explosion.Position = position
@@ -74,7 +63,6 @@ local function createHitEffect(position)
     explosion.Parent = workspace
 end
 
--- Создание пули
 local function createBullet(startPos, direction)
     local bullet = Instance.new("Part")
     bullet.Size = Vector3.new(settings.BulletSize, settings.BulletSize, settings.BulletSize)
@@ -95,22 +83,18 @@ local function createBullet(startPos, direction)
         
         local hitPos = bullet.Position
         bullet:Destroy()
-        
-        -- Эффект попадания
+
         createHitEffect(hitPos)
-        
-        -- Поиск жертвы
+
         local humanoid = hit.Parent:FindFirstChildOfClass("Humanoid") or 
                        (hit.Parent.Parent and hit.Parent.Parent:FindFirstChildOfClass("Humanoid"))
-        
-        -- Мгновенное убийство
+
         if humanoid and humanoid ~= character:FindFirstChildOfClass("Humanoid") then
             humanoid:TakeDamage(settings.Damage)
         end
     end)
 end
 
--- Создание интерфейса с прозрачным фоном
 local function createAmmoDisplay()
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "BoltRifleUI"
@@ -125,7 +109,7 @@ local function createAmmoDisplay()
     frame.Size = UDim2.new(0, 200, 0, 80)
     frame.Position = UDim2.new(0, 20, 1, -100)
     frame.AnchorPoint = Vector2.new(0, 1)
-    frame.BackgroundTransparency = 1 -- Полностью прозрачный фон
+    frame.BackgroundTransparency = 1
     frame.Parent = screenGui
 
     local ammoText = Instance.new("TextLabel")
@@ -187,7 +171,6 @@ local function reload()
     ammoDisplay.ReloadText.Visible = false
 end
 
--- Создание оружия
 local function createWeapon()
     local tool = Instance.new("Tool")
     tool.Name = settings.WeaponName
@@ -218,7 +201,6 @@ local function createWeapon()
     reloadSound.Volume = 0.5
     reloadSound.Parent = handle
 
-    -- Функция стрельбы
     local function shoot()
         if weaponState.Ammo <= 0 then
             reload()
@@ -245,7 +227,6 @@ local function createWeapon()
         weaponState.IsShooting = false
     end
 
-    -- Подключение событий
     table.insert(_G.BoltRifleSystem.Connections, tool.Activated:Connect(shoot))
     
     table.insert(_G.BoltRifleSystem.Connections, tool.Equipped:Connect(function()
@@ -262,7 +243,6 @@ local function createWeapon()
     tool.Parent = localPlayer.Backpack
 end
 
--- Перезарядка по R
 table.insert(_G.BoltRifleSystem.Connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.R then
@@ -270,7 +250,6 @@ table.insert(_G.BoltRifleSystem.Connections, UserInputService.InputBegan:Connect
     end
 end))
 
--- Автоперезарядка
 local function autoReload()
     while _G.BoltRifleSystem do
         if weaponState.Ammo <= 0 and not weaponState.IsReloading then
@@ -282,10 +261,8 @@ end
 
 coroutine.wrap(autoReload)()
 
--- Создание оружия
 createWeapon()
 
--- Уведомление
 local notification = Instance.new("ScreenGui")
 notification.Name = "BoltRifleNotification"
 notification.Parent = game:GetService("CoreGui")
