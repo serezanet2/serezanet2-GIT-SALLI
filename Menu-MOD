@@ -1,0 +1,123 @@
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 500, 0, 300)
+Frame.Position = UDim2.new(0.5, -250, 0, -350)
+Frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Parent = ScreenGui
+
+local FrameGradient = Instance.new("UIGradient")
+FrameGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+})
+FrameGradient.Rotation = 90
+FrameGradient.Parent = Frame
+
+local ProgressBarBG = Instance.new("Frame")
+ProgressBarBG.Size = UDim2.new(0, 350, 0, 20)
+ProgressBarBG.Position = UDim2.new(0, 75, 1, -60)
+ProgressBarBG.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ProgressBarBG.BorderSizePixel = 0
+ProgressBarBG.ZIndex = 2
+ProgressBarBG.Parent = Frame
+
+local ProgressBar = Instance.new("Frame")
+ProgressBar.Size = UDim2.new(0, 0, 0, 20)
+ProgressBar.Position = UDim2.new(0, 0, 0, 0)
+ProgressBar.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+ProgressBar.BorderSizePixel = 0
+ProgressBar.ZIndex = 3
+ProgressBar.Parent = ProgressBarBG
+
+local MenuText = Instance.new("TextLabel")
+MenuText.Size = UDim2.new(0, 100, 0, 20)
+MenuText.Position = UDim2.new(1, -110, 0, 10)
+MenuText.Text = "MENU MOD"
+MenuText.TextColor3 = Color3.fromRGB(200, 200, 200)
+MenuText.TextXAlignment = Enum.TextXAlignment.Right
+MenuText.BackgroundTransparency = 1
+MenuText.Font = Enum.Font.GothamBold
+MenuText.TextSize = 14
+MenuText.Parent = Frame
+
+local CreditText = Instance.new("TextLabel")
+CreditText.Size = UDim2.new(0, 120, 0, 20)
+CreditText.Position = UDim2.new(1, -130, 1, -30)
+CreditText.Text = "By salli_system"
+CreditText.TextColor3 = Color3.fromRGB(150, 150, 150)
+CreditText.TextXAlignment = Enum.TextXAlignment.Right
+CreditText.BackgroundTransparency = 1
+CreditText.Font = Enum.Font.Gotham
+CreditText.TextSize = 12
+CreditText.Parent = Frame
+
+local function animateFall()
+    local startTime = tick()
+    local duration = 0.8
+    
+    local startY = -350
+    local endY = -150
+    
+    local connection
+    connection = game:GetService("RunService").Heartbeat:Connect(function()
+        local progress = (tick() - startTime) / duration
+        
+        if progress >= 1 then
+            Frame.Position = UDim2.new(0.5, -250, 0.5, endY)
+            connection:Disconnect()
+            return
+        end
+
+        local bounceProgress = progress * progress * (2.5 * progress * progress - 3.5 * progress + 2.8)
+        local currentY = startY + (endY - startY) * bounceProgress
+        
+        Frame.Position = UDim2.new(0.5, -250, 0, currentY)
+    end)
+    
+    return duration
+end
+
+local function animateDisappear()
+    local startTime = tick()
+    local duration = 0.6
+    
+    local startY = Frame.Position.Y.Offset
+    local endY = 800 -- Падаем за пределы экрана
+    
+    local connection
+    connection = game:GetService("RunService").Heartbeat:Connect(function()
+        local progress = (tick() - startTime) / duration
+        
+        if progress >= 1 then
+            ScreenGui:Destroy()
+            connection:Disconnect()
+            return
+        end
+
+        local fallProgress = progress * progress
+        local currentY = startY + (endY - startY) * fallProgress
+        
+        Frame.Position = UDim2.new(0.5, -250, 0, currentY)
+    end)
+end
+
+local function startLoading()
+    local fallDuration = animateFall()
+    task.wait(fallDuration)
+
+    for i = 1, 100 do
+        ProgressBar.Size = UDim2.new(0, 350 * (i/100), 0, 20)
+        task.wait(0.03)
+    end
+
+    local success = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/git-salli.lua"))()
+    end)
+
+    animateDisappear()
+end
+
+startLoading()
