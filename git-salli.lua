@@ -5,24 +5,22 @@ local TweenService = game:GetService("TweenService")
 local TeleportService = game:GetService("TeleportService")
 local SoundService = game:GetService("SoundService")
 local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
 
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
 
--- Ожидаем загрузку игры
 if not game:IsLoaded() then
 	game.Loaded:Wait()
 end
 
--- Скрываем стандартный курсор
 UIS.MouseIconEnabled = false
 
--- Создаем кастомный курсор
 local cursorGui = Instance.new("ScreenGui")
 cursorGui.Name = "CustomCursor"
 cursorGui.DisplayOrder = 999999
 cursorGui.ResetOnSpawn = false
-cursorGui.Parent = player.PlayerGui
+cursorGui.Parent = CoreGui
 
 local cursorOuter = Instance.new("Frame")
 cursorOuter.Name = "CursorOuter"
@@ -53,24 +51,20 @@ local UICornerInner = Instance.new("UICorner")
 UICornerInner.CornerRadius = UDim.new(1, 0)
 UICornerInner.Parent = cursorInner
 
--- Анимация пульсации
 local pulseTween = TweenService:Create(cursorInner, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
 	BackgroundTransparency = 0.8,
 	Size = UDim2.new(0, 12, 0, 12)
 })
 pulseTween:Play()
 
--- Обновляем позицию кастомного курсора
 local cursorConnection
 cursorConnection = RunService.RenderStepped:Connect(function()
 	local mouseLocation = UIS:GetMouseLocation()
-	cursorOuter.Position = UDim2.new(0, mouseLocation.X, 0, mouseLocation.Y - 60)
+	cursorOuter.Position = UDim2.new(0, mouseLocation.X, 0, mouseLocation.Y - 55)
 end)
 
--- Текущая тема (true - светлая, false - темная)
 local lightTheme = false
 
--- Цвета для тем
 local themeColors = {
 	dark = {
 		background = Color3.fromRGB(25, 25, 25),
@@ -90,13 +84,12 @@ local themeColors = {
 	}
 }
 
--- Создаем GUI
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FunctionalMenu"
+ScreenGui.DisplayOrder = 99999
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.Parent = CoreGui
 
--- Основное меню
 local mainMenu = Instance.new("Frame")
 mainMenu.Name = "MainMenu"
 mainMenu.Size = UDim2.new(0, 500, 1, -20)
@@ -106,14 +99,39 @@ mainMenu.BorderSizePixel = 0
 mainMenu.ClipsDescendants = true
 mainMenu.Parent = ScreenGui
 
--- Заголовок с информацией об игроке
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 40, 0, 40)
+toggleButton.Position = UDim2.new(1, -40, 0, 0)
+toggleButton.BackgroundColor3 = themeColors.dark.accent
+toggleButton.TextColor3 = themeColors.dark.text
+toggleButton.Text = "≡"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.Parent = mainMenu
+
+local isMenuMinimized = false
+
+local function toggleMenu()
+	if isMenuMinimized then
+		mainMenu.Size = UDim2.new(0, 500, 1, -20)
+		toggleButton.Text = "≡"
+		isMenuMinimized = false
+	else
+		mainMenu.Size = UDim2.new(0, 40, 0, 40)
+		toggleButton.Text = ">"
+		isMenuMinimized = true
+	end
+end
+
+toggleButton.MouseButton1Click:Connect(toggleMenu)
+
 local titleFrame = Instance.new("Frame")
 titleFrame.Size = UDim2.new(1, 0, 0, 80)
 titleFrame.BackgroundColor3 = themeColors.dark.secondary
 titleFrame.BorderSizePixel = 0
 titleFrame.Parent = mainMenu
 
--- Аватар игрока
 local avatar = Instance.new("ImageLabel")
 avatar.Name = "Avatar"
 avatar.Size = UDim2.new(0, 60, 0, 60)
@@ -123,7 +141,6 @@ avatar.BorderSizePixel = 0
 avatar.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
 avatar.Parent = titleFrame
 
--- Ник и логин игрока
 local playerInfo = Instance.new("TextLabel")
 playerInfo.Name = "PlayerInfo"
 playerInfo.Size = UDim2.new(1, -80, 1, -20)
@@ -136,7 +153,6 @@ playerInfo.TextSize = 16
 playerInfo.TextXAlignment = Enum.TextXAlignment.Left
 playerInfo.Parent = titleFrame
 
--- Вкладки
 local tabsFrame = Instance.new("Frame")
 tabsFrame.Name = "Tabs"
 tabsFrame.Size = UDim2.new(1, 0, 0, 30)
@@ -145,7 +161,6 @@ tabsFrame.BackgroundColor3 = themeColors.dark.secondary
 tabsFrame.BorderSizePixel = 0
 tabsFrame.Parent = mainMenu
 
--- Функция создания вкладки
 local function createTab(name, text, position)
 	local tab = Instance.new("TextButton")
 	tab.Name = name
@@ -161,7 +176,6 @@ local function createTab(name, text, position)
 	return tab
 end
 
--- Создаем 8 вкладок (увеличили количество)
 local tab1 = createTab("Tab1", "Player", UDim2.new(0, 0, 0, 0))
 local tab2 = createTab("Tab2", "TP", UDim2.new(0.125, 0, 0, 0))
 local tab3 = createTab("Tab3", "PvP", UDim2.new(0.25, 0, 0, 0))
@@ -171,7 +185,6 @@ local tab6 = createTab("Tab6", "Misc", UDim2.new(0.625, 0, 0, 0))
 local tab7 = createTab("Tab7", "Hacks", UDim2.new(0.75, 0, 0, 0))
 local tab8 = createTab("Tab8", "Scripts", UDim2.new(0.875, 0, 0, 0))
 
--- Контейнеры для вкладок
 local tabContainers = {}
 for i = 1, 8 do
 	local container = Instance.new("Frame")
@@ -184,7 +197,6 @@ for i = 1, 8 do
 	tabContainers[i] = container
 end
 
--- Функция переключения вкладок
 local function switchTab(tab)
 	for i = 1, 8 do
 		local currentTab = tabsFrame:FindFirstChild("Tab"..i)
@@ -202,7 +214,6 @@ for i = 1, 8 do
 	end
 end
 
--- Функция создания кнопки
 local function createButton(parent, name, text, position)
 	local button = Instance.new("TextButton")
 	button.Name = name
@@ -228,7 +239,6 @@ local function createButton(parent, name, text, position)
 	return button
 end
 
--- Функция добавления круглого индикатора
 local function addIndicator(button)
 	local indicator = Instance.new("Frame")
 	indicator.Size = UDim2.new(0, 16, 0, 16)
@@ -244,13 +254,11 @@ local function addIndicator(button)
 	return indicator
 end
 
--- Звук для кнопок
 local buttonSound = Instance.new("Sound")
 buttonSound.SoundId = "rbxassetid://3578735786"
 buttonSound.Volume = 0.5
 buttonSound.Parent = SoundService
 
--- Вкладка Player
 local noclipButton = createButton(tabContainers[1], "NoclipButton", "NoClip", UDim2.new(0, 10, 0, 0))
 local flyButton = createButton(tabContainers[1], "FlyButton", "Fly", UDim2.new(0, 10, 0, 45))
 local freeCamButton = createButton(tabContainers[1], "FreeCamButton", "FreeCam", UDim2.new(0, 10, 0, 90))
@@ -259,39 +267,32 @@ local rejoinButton = createButton(tabContainers[1], "RejoinButton", "Rejoin", UD
 local resetButton = createButton(tabContainers[1], "ResetButton", "Reset", UDim2.new(0, 10, 0, 225))
 local disableButton = createButton(tabContainers[1], "DisableButton", "Отключить скрипт", UDim2.new(0, 10, 0, 270))
 
--- Вкладка TP
 local clickTpButton = createButton(tabContainers[2], "ClickTPButton", "Click TP", UDim2.new(0, 10, 0, 0))
 
--- Вкладка Visual
 local noFogButton = createButton(tabContainers[4], "NoFogButton", "No Fog", UDim2.new(0, 10, 0, 0))
 local wireframeButton = createButton(tabContainers[4], "WireframeButton", "Wireframe Mode", UDim2.new(0, 10, 0, 45))
 local fullbrightButton = createButton(tabContainers[4], "FullbrightButton", "Fullbright", UDim2.new(0, 10, 0, 90))
 
--- Вкладка ESP
 local espButton = createButton(tabContainers[5], "ESPButton", "ESP", UDim2.new(0, 10, 0, 0))
 local boxEspButton = createButton(tabContainers[5], "BoxESPButton", "Box ESP", UDim2.new(0, 10, 0, 45))
 local tracersButton = createButton(tabContainers[5], "TracersButton", "Tracers", UDim2.new(0, 10, 0, 90))
 
--- Вкладка Misc
 local infiniteJumpButton = createButton(tabContainers[6], "InfiniteJumpButton", "Infinite Jump", UDim2.new(0, 10, 0, 0))
 local antiAfkButton = createButton(tabContainers[6], "AntiAfkButton", "Anti AFK", UDim2.new(0, 10, 0, 45))
 local fpsBoostButton = createButton(tabContainers[6], "FpsBoostButton", "FPS Boost", UDim2.new(0, 10, 0, 90))
 local bunnyHopButton = createButton(tabContainers[6], "BunnyHopButton", "Bunny Hop", UDim2.new(0, 10, 0, 135))
 local speedHackButton = createButton(tabContainers[6], "SpeedHackButton", "Speed Hack", UDim2.new(0, 10, 0, 180))
 
--- Вкладка Hacks
 local godmodeButton = createButton(tabContainers[7], "GodmodeButton", "Godmode", UDim2.new(0, 10, 0, 0))
 local invisibleButton = createButton(tabContainers[7], "InvisibleButton", "Invisible Hack", UDim2.new(0, 10, 0, 45))
 local clickDeleteButton = createButton(tabContainers[7], "ClickDeleteButton", "Click Delete", UDim2.new(0, 10, 0, 90))
 local itemStealerButton = createButton(tabContainers[7], "ItemStealerButton", "Item Stealer", UDim2.new(0, 10, 0, 135))
 local luaExecutorButton = createButton(tabContainers[7], "LuaExecutorButton", "Lua Executor", UDim2.new(0, 10, 0, 180))
 
--- Вкладка Scripts
 local buildBoatButton = createButton(tabContainers[8], "BuildBoatButton", "Build a Boat", UDim2.new(0, 10, 0, 0))
 local deadRailsButton = createButton(tabContainers[8], "DeadRailsButton", "Dead Rails", UDim2.new(0, 10, 0, 45))
 local infiniteYieldButton = createButton(tabContainers[8], "InfiniteYieldButton", "Infinite Yield", UDim2.new(0, 10, 0, 90))
 
--- Добавляем круглые индикаторы
 local noclipIndicator = addIndicator(noclipButton)
 local flyIndicator = addIndicator(flyButton)
 local freeCamIndicator = addIndicator(freeCamButton)
@@ -309,7 +310,49 @@ local godmodeIndicator = addIndicator(godmodeButton)
 local invisibleIndicator = addIndicator(invisibleButton)
 local clickDeleteIndicator = addIndicator(clickDeleteButton)
 
--- Функция NoClip
+local function toggleTheme()
+	lightTheme = not lightTheme
+	local colors = lightTheme and themeColors.light or themeColors.dark
+
+	mainMenu.BackgroundColor3 = colors.background
+	titleFrame.BackgroundColor3 = colors.secondary
+	playerInfo.TextColor3 = colors.text
+
+	for i = 1, 8 do
+		local tab = tabsFrame:FindFirstChild("Tab"..i)
+		if tab then
+			tab.BackgroundColor3 = tabContainers[i].Visible and colors.accent or colors.button
+			tab.TextColor3 = colors.text
+		end
+	end
+
+	for _, container in ipairs(tabContainers) do
+		for _, button in ipairs(container:GetChildren()) do
+			if button:IsA("TextButton") then
+				button.BackgroundColor3 = colors.button
+				button.TextColor3 = colors.text
+			end
+		end
+	end
+end
+
+themeButton.MouseButton1Click:Connect(toggleTheme)
+
+disableButton.MouseButton1Click:Connect(function()
+	ScreenGui:Destroy()
+	cursorGui:Destroy()
+	cursorConnection:Disconnect()
+	UIS.MouseIconEnabled = true
+end)
+
+rejoinButton.MouseButton1Click:Connect(function()
+	TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+end)
+
+resetButton.MouseButton1Click:Connect(function()
+	player.Character:BreakJoints()
+end)
+
 local noclipEnabled = false
 local noclipConnection
 local function toggleNoclip()
@@ -340,7 +383,6 @@ end
 
 noclipButton.MouseButton1Click:Connect(toggleNoclip)
 
--- Функция Click TP
 local clickTpEnabled = false
 local clickTpConnection
 local function toggleClickTp()
@@ -368,7 +410,6 @@ end
 
 clickTpButton.MouseButton1Click:Connect(toggleClickTp)
 
--- Функция полёта
 local flyEnabled = false
 local flyVelocity, flyGyro
 local flySpeed = 50
@@ -435,7 +476,6 @@ end
 
 flyButton.MouseButton1Click:Connect(toggleFly)
 
--- Функция FreeCam
 local freeCamEnabled = false
 local freeCamSpeed = 5
 local freeCamFastSpeed = 15
@@ -548,7 +588,6 @@ end
 freeCamButton.MouseButton1Click:Connect(ToggleFreeCam)
 RunService.RenderStepped:Connect(UpdateFreeCam)
 
--- Функция No Fog
 local noFogEnabled = false
 local originalFogStart, originalFogEnd
 local function toggleNoFog()
@@ -572,7 +611,6 @@ end
 
 noFogButton.MouseButton1Click:Connect(toggleNoFog)
 
--- Функция Wireframe Mode
 local wireframeEnabled = false
 local wireframeConnections = {}
 local function toggleWireframe()
@@ -605,14 +643,12 @@ local function toggleWireframe()
 			end
 		end
 
-		-- Применяем к уже существующим персонажам
 		for _, player in ipairs(Players:GetPlayers()) do
 			if player.Character then
 				applyWireframe(player.Character)
 			end
 		end
 
-		-- Подключаемся к событию добавления персонажей
 		table.insert(wireframeConnections, Players.PlayerAdded:Connect(function(player)
 			player.CharacterAdded:Connect(function(character)
 				if wireframeEnabled then
@@ -624,7 +660,6 @@ local function toggleWireframe()
 		buttonSound:Play()
 		wireframeIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
 
-		-- Удаляем все wireframe эффекты
 		for _, connectionData in ipairs(wireframeConnections) do
 			if connectionData.connection then
 				connectionData.connection:Disconnect()
@@ -639,7 +674,6 @@ end
 
 wireframeButton.MouseButton1Click:Connect(toggleWireframe)
 
--- Функция Fullbright
 local fullbrightEnabled = false
 local originalBrightness
 local function toggleFullbright()
@@ -666,7 +700,6 @@ end
 
 fullbrightButton.MouseButton1Click:Connect(toggleFullbright)
 
--- Функция ESP
 local espEnabled = false
 local espConnections = {}
 local function toggleESP()
@@ -727,7 +760,6 @@ end
 
 espButton.MouseButton1Click:Connect(toggleESP)
 
--- Функция Box ESP
 local boxEspEnabled = false
 local boxEspConnections = {}
 local function toggleBoxESP()
@@ -792,7 +824,6 @@ end
 
 boxEspButton.MouseButton1Click:Connect(toggleBoxESP)
 
--- Функция Tracers
 local tracersEnabled = false
 local tracersConnections = {}
 local function toggleTracers()
@@ -864,7 +895,6 @@ end
 
 tracersButton.MouseButton1Click:Connect(toggleTracers)
 
--- Функция Infinite Jump
 local infiniteJumpEnabled = false
 local infiniteJumpConnection
 local function toggleInfiniteJump()
@@ -895,7 +925,6 @@ end
 
 infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
 
--- Функция Anti AFK
 local antiAfkEnabled = false
 local antiAfkConnection
 local function toggleAntiAfk()
@@ -922,7 +951,6 @@ end
 
 antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
 
--- Функция FPS Boost
 local fpsBoostEnabled = false
 local originalGraphicsQuality
 local function toggleFpsBoost()
@@ -947,7 +975,6 @@ end
 
 fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
 
--- Функция Bunny Hop
 local bunnyHopEnabled = false
 local bunnyHopConnection
 local function toggleBunnyHop()
@@ -978,7 +1005,6 @@ end
 
 bunnyHopButton.MouseButton1Click:Connect(toggleBunnyHop)
 
--- Функция Speed Hack
 local speedHackEnabled = false
 local originalWalkSpeed
 local function toggleSpeedHack()
@@ -1017,7 +1043,6 @@ end
 
 speedHackButton.MouseButton1Click:Connect(toggleSpeedHack)
 
--- Функция Godmode
 local godmodeEnabled = false
 local godmodeConnections = {}
 local function toggleGodmode()
@@ -1030,19 +1055,16 @@ local function toggleGodmode()
 		local function protectCharacter(character)
 			local humanoid = character:WaitForChildOfClass("Humanoid")
 
-			-- Защита от урона
 			table.insert(godmodeConnections, humanoid.HealthChanged:Connect(function()
 				if humanoid.Health < humanoid.MaxHealth then
 					humanoid.Health = humanoid.MaxHealth
 				end
 			end))
 
-			-- Защита от смерти
 			table.insert(godmodeConnections, humanoid.Died:Connect(function()
 				humanoid.Health = humanoid.MaxHealth
 			end))
 
-			-- Защита частей тела
 			for _, part in ipairs(character:GetDescendants()) do
 				if part:IsA("BasePart") then
 					part.CanCollide = false
@@ -1070,7 +1092,6 @@ end
 
 godmodeButton.MouseButton1Click:Connect(toggleGodmode)
 
--- Функция Invisible Hack
 local invisibleEnabled = false
 local originalTransparency = {}
 local function toggleInvisible()
@@ -1120,7 +1141,6 @@ end
 
 invisibleButton.MouseButton1Click:Connect(toggleInvisible)
 
--- Функция Click Delete
 local clickDeleteEnabled = false
 local clickDeleteConnection
 local function toggleClickDelete()
@@ -1134,7 +1154,6 @@ local function toggleClickDelete()
 		clickDeleteConnection = mouse.Button1Down:Connect(function()
 			local target = mouse.Target
 			if target and target.Parent then
-				-- Проверяем, не является ли объект частью нашего персонажа
 				local isPlayerPart = false
 				if player.Character then
 					for _, part in ipairs(player.Character:GetDescendants()) do
@@ -1146,7 +1165,6 @@ local function toggleClickDelete()
 				end
 
 				if not isPlayerPart then
-					-- Удаляем объект
 					target:Destroy()
 				end
 			end
@@ -1163,7 +1181,6 @@ end
 
 clickDeleteButton.MouseButton1Click:Connect(toggleClickDelete)
 
--- Функция Item Stealer
 local itemStealerEnabled = false
 local itemStealerConnection
 local function toggleItemStealer()
@@ -1179,10 +1196,8 @@ local function toggleItemStealer()
 				local rootPart = player.Character.HumanoidRootPart
 				local radius = 20
 
-				-- Ищем ближайшие предметы
 				for _, item in ipairs(workspace:GetDescendants()) do
 					if item:IsA("BasePart") and item.Name == "Handle" and (item.Position - rootPart.Position).Magnitude < radius then
-						-- Перемещаем предмет к игроку
 						item.CFrame = rootPart.CFrame + Vector3.new(0, 0, -2)
 					end
 				end
@@ -1201,7 +1216,6 @@ end
 
 itemStealerButton.MouseButton1Click:Connect(toggleItemStealer)
 
--- Функция Lua Executor
 local luaExecutorEnabled = false
 local function toggleLuaExecutor()
 	luaExecutorEnabled = not luaExecutorEnabled
@@ -1210,7 +1224,6 @@ local function toggleLuaExecutor()
 		buttonSound:Play()
 		luaExecutorButton.Text = "Lua Executor (ON)"
 
-		-- Создаем GUI для ввода Lua кода
 		local executorGui = Instance.new("ScreenGui")
 		executorGui.Name = "LuaExecutor"
 		executorGui.Parent = player.PlayerGui
@@ -1273,7 +1286,6 @@ end
 
 luaExecutorButton.MouseButton1Click:Connect(toggleLuaExecutor)
 
--- Функция Build a Boat
 local function loadBuildABoat()
 	buttonSound:Play()
 	if game.PlaceId == 537413528 then
@@ -1285,7 +1297,6 @@ end
 
 buildBoatButton.MouseButton1Click:Connect(loadBuildABoat)
 
--- Функция Dead Rails
 local function loadDeadRails()
 	buttonSound:Play()
 	if game.PlaceId == 116495829188952 then
@@ -1297,7 +1308,6 @@ end
 
 deadRailsButton.MouseButton1Click:Connect(loadDeadRails)
 
--- Функция Infinite Yield
 local function loadInfiniteYield()
 	buttonSound:Play()
 	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
@@ -1305,20 +1315,17 @@ end
 
 infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
 
--- Функция смены темы
 local function toggleTheme()
 	buttonSound:Play()
 	lightTheme = not lightTheme
 	local colors = lightTheme and themeColors.light or themeColors.dark
 
-	-- Применяем новую тему
 	mainMenu.BackgroundColor3 = colors.background
 	titleFrame.BackgroundColor3 = colors.secondary
 	tabsFrame.BackgroundColor3 = colors.secondary
 	avatar.BackgroundColor3 = colors.button
 	playerInfo.TextColor3 = colors.text
 
-	-- Обновляем вкладки
 	for i = 1, 8 do
 		local tab = tabsFrame:FindFirstChild("Tab"..i)
 		if tab then
@@ -1326,7 +1333,6 @@ local function toggleTheme()
 		end
 	end
 
-	-- Обновляем все кнопки
 	for _, container in ipairs(tabContainers) do
 		for _, child in ipairs(container:GetChildren()) do
 			if child:IsA("TextButton") then
@@ -1339,7 +1345,6 @@ end
 
 themeButton.MouseButton1Click:Connect(toggleTheme)
 
--- Функция реджоина
 local function rejoinGame()
 	buttonSound:Play()
 	TeleportService:Teleport(game.PlaceId, player)
@@ -1347,7 +1352,6 @@ end
 
 rejoinButton.MouseButton1Click:Connect(rejoinGame)
 
--- Функция ресета персонажа
 local function resetCharacter()
 	buttonSound:Play()
 	local character = player.Character
@@ -1358,11 +1362,9 @@ end
 
 resetButton.MouseButton1Click:Connect(resetCharacter)
 
--- Функция отключения скрипта
 local function disableScript()
 	buttonSound:Play()
 
-	-- Отключаем все функции
 	if noclipEnabled then toggleNoclip() end
 	if clickTpEnabled then toggleClickTp() end
 	if flyEnabled then toggleFly() end
@@ -1384,20 +1386,16 @@ local function disableScript()
 	if itemStealerEnabled then toggleItemStealer() end
 	if luaExecutorEnabled then toggleLuaExecutor() end
 
-	-- Отключаем соединение курсора
 	if cursorConnection then
 		cursorConnection:Disconnect()
 		cursorConnection = nil
 	end
 
-	-- Удаляем GUI
 	ScreenGui:Destroy()
 	cursorGui:Destroy()
 
-	-- Восстанавливаем стандартный курсор
 	UIS.MouseIconEnabled = true
 
-	-- Респавним игрока
 	local character = player.Character
 	if character then
 		character:BreakJoints()
@@ -1406,9 +1404,7 @@ end
 
 disableButton.MouseButton1Click:Connect(disableScript)
 
--- Обработчик респавна персонажа
 player.CharacterAdded:Connect(function(character)
-	-- Переподключаем функции, если они были активны
 	if noclipEnabled then
 		toggleNoclip()
 		toggleNoclip()
@@ -1440,33 +1436,28 @@ player.CharacterAdded:Connect(function(character)
 	end
 end)
 
--- Функция для анимации меню
 local menuVisible = true
 local function toggleMenu()
 	buttonSound:Play()
 	menuVisible = not menuVisible
 
 	if menuVisible then
-		-- Показываем меню
 		TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Position = UDim2.new(0, 10, 0, 10)
 		}):Play()
 	else
-		-- Скрываем меню за пределы экрана
 		TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 			Position = UDim2.new(0, -510, 0, 10)
 		}):Play()
 	end
 end
 
--- Управление меню по Shift
 UIS.InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
 		toggleMenu()
 	end
 end)
 
--- Горячая клавиша F для отключения FreeCam
 UIS.InputBegan:Connect(function(input, processed)
 	if not processed and input.KeyCode == Enum.KeyCode.F then
 		if freeCamEnabled then
@@ -1475,5 +1466,4 @@ UIS.InputBegan:Connect(function(input, processed)
 	end
 end)
 
--- Сразу показываем меню
 toggleMenu()
