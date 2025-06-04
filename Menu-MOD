@@ -1,8 +1,12 @@
 local player = game:GetService("Players").LocalPlayer
+local TweenService = game:GetService("TweenService")
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "LoadingGUI"
-gui.Parent = player:WaitForChild("PlayerGui")
-gui.DisplayOrder = 9999  -- Устанавливаем очень высокое значение, чтобы GUI был поверх всего
+gui.Parent = game:GetService("CoreGui")
+gui.DisplayOrder = 9999
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 500, 0, 300)
@@ -20,7 +24,6 @@ gradient.Color = ColorSequence.new({
 gradient.Rotation = 90
 gradient.Parent = mainFrame
 
--- Прогресс бар
 local progressBarBack = Instance.new("Frame")
 progressBarBack.Name = "ProgressBarBack"
 progressBarBack.Size = UDim2.new(0, 350, 0, 20)
@@ -39,7 +42,6 @@ progressBar.BorderSizePixel = 0
 progressBar.ZIndex = 3
 progressBar.Parent = progressBarBack
 
--- Текстовые элементы
 local menuText = Instance.new("TextLabel")
 menuText.Size = UDim2.new(0, 100, 0, 20)
 menuText.Position = UDim2.new(1, -110, 0, 10)
@@ -62,7 +64,6 @@ creditText.Font = Enum.Font.Gotham
 creditText.TextSize = 12
 creditText.Parent = mainFrame
 
--- Приветственное сообщение (изначально скрыто)
 local welcomeText = Instance.new("TextLabel")
 welcomeText.Name = "WelcomeText"
 welcomeText.Size = UDim2.new(1, -40, 0, 50)
@@ -76,36 +77,30 @@ welcomeText.TextSize = 24
 welcomeText.Visible = false
 welcomeText.Parent = mainFrame
 
--- Анимации
 local function tween(obj, props, duration, easingStyle, easingDirection)
     local tweenInfo = TweenInfo.new(duration, easingStyle or Enum.EasingStyle.Quad, easingDirection or Enum.EasingDirection.Out)
-    local tween = game:GetService("TweenService"):Create(obj, tweenInfo, props)
+    local tween = TweenService:Create(obj, tweenInfo, props)
     tween:Play()
     return tween
 end
 
--- Первая анимация - падение окна
 local function initialAnimation()
     tween(mainFrame, {
         Position = UDim2.new(0.5, -250, 0.5, -150)
     }, 1.2, Enum.EasingStyle.Bounce)
     
-    -- Заполнение прогресс-бара
     for i = 1, 100 do
         progressBar.Size = UDim2.new(i/100, 0, 1, 0)
         task.wait(0.03)
     end
 end
 
--- Анимация на весь экран
 local function fullscreenAnimation()
-    -- Сначала делаем на весь экран
     tween(mainFrame, {
         Size = UDim2.new(1, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0)
     }, 0.8, Enum.EasingStyle.Quint)
     
-    -- Затем анимируем элементы
     tween(progressBarBack, {
         Size = UDim2.new(0.7, 0, 0, 30),
         Position = UDim2.new(0.15, 0, 0.85, 0)
@@ -121,31 +116,23 @@ local function fullscreenAnimation()
         TextSize = 16
     }, 0.5)
     
-    -- Показываем приветствие
     welcomeText.Visible = true
-    
-    -- Сбрасываем прогресс бар
     progressBar.Size = UDim2.new(0, 0, 1, 0)
-    
-    -- Заполняем снова
     tween(progressBar, {
         Size = UDim2.new(1, 0, 1, 0)
     }, 1.5)
     
-    return 1 -- Время ожидания
+    return 1.5
 end
 
--- Финальная анимация - скрытие
 local function hideAnimation()
     welcomeText.Visible = false
     
-    -- Сжимаем обратно
     tween(mainFrame, {
         Size = UDim2.new(0, 100, 0, 60),
         Position = UDim2.new(0.5, -50, 0.5, -12.5)
     }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In).Completed:Wait()
     
-    -- Улетаем вверх
     tween(mainFrame, {
         Position = UDim2.new(0.5, -50, 0, -100)
     }, 0.8).Completed:Wait()
@@ -153,13 +140,11 @@ local function hideAnimation()
     gui:Destroy()
 end
 
--- Основная функция загрузки
 local function main()
     initialAnimation()
     local waitTime = fullscreenAnimation()
     task.wait(waitTime)
     
-    -- Здесь можно загрузить ваш скрипт
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/git-salli.lua"))()
     end)
@@ -171,5 +156,4 @@ local function main()
     hideAnimation()
 end
 
--- Запуск
 main()
