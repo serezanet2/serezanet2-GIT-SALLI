@@ -126,8 +126,17 @@ local function fullscreenAnimation()
 end
 
 local function hideAnimation()
-    welcomeText.Visible = false
+    -- Анимация отката прогресс-бара
+    tween(progressBar, {
+        Size = UDim2.new(0, 0, 1, 0)
+    }, 0.5).Completed:Wait()
     
+    -- Скрываем все текстовые элементы
+    welcomeText.Visible = false
+    menuText.Visible = false
+    creditText.Visible = false
+    
+    -- Анимация уменьшения основного фрейма
     tween(mainFrame, {
         Size = UDim2.new(0, 100, 0, 60),
         Position = UDim2.new(0.5, -50, 0.5, -12.5)
