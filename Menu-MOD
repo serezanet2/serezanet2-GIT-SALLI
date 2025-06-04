@@ -2,6 +2,7 @@ local player = game:GetService("Players").LocalPlayer
 local gui = Instance.new("ScreenGui")
 gui.Name = "LoadingGUI"
 gui.Parent = player:WaitForChild("PlayerGui")
+gui.DisplayOrder = 9999  -- Устанавливаем очень высокое значение, чтобы GUI был поверх всего
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 500, 0, 300)
