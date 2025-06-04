@@ -252,8 +252,8 @@ buttonSound.Parent = SoundService
 
 -- Вкладка Player
 local noclipButton = createButton(tabContainers[1], "NoclipButton", "NoClip", UDim2.new(0, 10, 0, 0))
-local flyButton = createButton(tabContainers[1], "FlyButton", "Fly (WASD+E/Q)", UDim2.new(0, 10, 0, 45))
-local freeCamButton = createButton(tabContainers[1], "FreeCamButton", "FreeCam (WASD+Shift+RMB)", UDim2.new(0, 10, 0, 90))
+local flyButton = createButton(tabContainers[1], "FlyButton", "Fly", UDim2.new(0, 10, 0, 45))
+local freeCamButton = createButton(tabContainers[1], "FreeCamButton", "FreeCam", UDim2.new(0, 10, 0, 90))
 local themeButton = createButton(tabContainers[1], "ThemeButton", "Сменить тему", UDim2.new(0, 10, 0, 135))
 local rejoinButton = createButton(tabContainers[1], "RejoinButton", "Rejoin", UDim2.new(0, 10, 0, 180))
 local resetButton = createButton(tabContainers[1], "ResetButton", "Reset", UDim2.new(0, 10, 0, 225))
