@@ -4,7 +4,7 @@ local TweenService = game:GetService("TweenService")
 local gui = Instance.new("ScreenGui")
 gui.Name = "LoadingGUI"
 gui.Parent = game:GetService("CoreGui")
-gui.DisplayOrder = 9999
+gui.DisplayOrder = 99999
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
 
