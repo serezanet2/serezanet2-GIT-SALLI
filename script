@@ -7,9 +7,9 @@
 
 -- Закодированные данные
 local encodedKey = "NzgzNjk=" -- 78369 в base64
-local encodedScript = "bG9hZHN0cmluZyhnYW1lOkdldEh0dHAoJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9zZXJlemFuZXQyL3NlcmV6YW5ldDItR0lULVNBTExJL3JlZnMvaGVhZHMvbWFpbi9zY3JpcHQta2V5JykpKCk="
+local encodedScript = "cHJpbnQoIkhlbGxvLCB3b3JsZCEgU2NyaXB0IGFjdGl2YXRlZCBzdWNjZXNzZnVsbHkhIik=" -- Пример простого скрипта
 
--- Декодер Base64
+-- Улучшенный декодер Base64
 local function base64Decode(data)
     local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     data = string.gsub(data, '[^'..b..'=]', '')
@@ -80,6 +80,8 @@ local function createAuthWindow()
         else
             input.Text = ""
             input.PlaceholderText = "❌ Неверный ключ!"
+            task.wait(0.5)
+            input.PlaceholderText = "Введите ключ активации"
         end
     end)
 end
@@ -92,9 +94,15 @@ local function loadMainScript()
         return
     end
 
-    local loadSuccess, err = pcall(loadstring(decoded))
-    if not loadSuccess then
-        warn("[Ошибка] Запуск скрипта: "..err)
+    local func, err = load(decoded)
+    if not func then
+        warn("[Ошибка] Компиляция скрипта: "..tostring(err))
+        return
+    end
+    
+    local execSuccess, execErr = pcall(func)
+    if not execSuccess then
+        warn("[Ошибка] Выполнение скрипта: "..tostring(execErr))
     end
 end
 
