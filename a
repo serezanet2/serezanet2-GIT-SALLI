@@ -1,5 +1,7 @@
--- Закодированная ссылка на твой скрипт (base64)
-local encodedURL = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL01lbnUtTU9E"
+-- Закодированные данные (base64)
+local encodedPassword = "NzgzNjk="  -- 78369 в base64
+local encodedURL = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tAWluL01lbnUtTU9E"
+local playerokURL = "aHR0cHM6Ly9wbGF5ZXJvay5jb20vcHJvZmlsZS9TZXJlemFuZXQyL3Byb2R1Y3Rz"
 
 -- Декодер base64
 local function base64Decode(data)
@@ -13,19 +15,81 @@ local function base64Decode(data)
     end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
         if #x ~= 8 then return '' end
         local c = 0
-        for i = 1, 8 do c = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0) end
+        for i = 1, 8 do c = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0 end
         return string.char(c)
     end))
 end
 
--- Декодируем URL и загружаем скрипт
-local scriptURL = base64Decode(encodedURL)
-local success, response = pcall(function()
-    return game:HttpGet(scriptURL, true)
-end)
+-- Создаем интерфейс
+local function createAuthWindow()
+    local PlayerOkLink = base64Decode(playerokURL)
+    
+    local screenGui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    local textBox = Instance.new("TextBox")
+    local submit = Instance.new("TextButton")
+    local close = Instance.new("TextButton")
+    local link = Instance.new("TextLabel")
 
-if success then
-    loadstring(response)()
-else
-    warn("Ошибка загрузки скрипта! Проверь ссылку или интернет.")
+    -- Настройка GUI
+    screenGui.Parent = game.CoreGui
+    screenGui.Name = "SerezaAuth"
+    
+    frame.Size = UDim2.new(0, 300, 0, 200)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    frame.Parent = screenGui
+    
+    textBox.Size = UDim2.new(0, 200, 0, 30)
+    textBox.Position = UDim2.new(0.5, -100, 0.3, 0)
+    textBox.PlaceholderText = "Введите пароль"
+    textBox.Parent = frame
+    
+    submit.Size = UDim2.new(0, 100, 0, 30)
+    submit.Position = UDim2.new(0.5, -50, 0.6, 0)
+    submit.Text = "Активировать"
+    submit.Parent = frame
+    
+    close.Size = UDim2.new(0, 30, 0, 30)
+    close.Position = UDim2.new(1, -35, 0, 5)
+    close.Text = "X"
+    close.Parent = frame
+    
+    link.Size = UDim2.new(0, 280, 0, 20)
+    link.Position = UDim2.new(0, 10, 0.8, 0)
+    link.Text = "Купить: " .. PlayerOkLink
+    link.TextXAlignment = Enum.TextXAlignment.Left
+    link.Parent = frame
+
+    -- Обработчики событий
+    close.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+    
+    submit.MouseButton1Click:Connect(function()
+        if textBox.Text == base64Decode(encodedPassword) then
+            screenGui:Destroy()
+            loadMainScript()
+        else
+            textBox.Text = ""
+            textBox.PlaceholderText = "Неверный пароль!"
+        end
+    end)
 end
+
+-- Загрузка основного скрипта
+local function loadMainScript()
+    local scriptURL = base64Decode(encodedURL)
+    local success, response = pcall(function()
+        return game:HttpGet(scriptURL, true)
+    end)
+
+    if success then
+        loadstring(response)()
+    else
+        warn("Ошибка загрузки скрипта!")
+    end
+end
+
+-- Запускаем окно авторизации
+createAuthWindow()
