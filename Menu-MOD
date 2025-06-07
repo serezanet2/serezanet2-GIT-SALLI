@@ -1,1469 +1,234 @@
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
-local TeleportService = game:GetService("TeleportService")
-local SoundService = game:GetService("SoundService")
-local Lighting = game:GetService("Lighting")
-local CoreGui = game:GetService("CoreGui")
+local MarketplaceService = game:GetService("MarketplaceService")
 
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local encodedKey = "NzgzNjk="
+local encodedScript = "bG9hZHN0cmluZyhnYW1lOkdldEh0dHBTZXJ2aWNlKCJodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vc2VyZXphbmV0Mi9zZXJlemFuZXQyLUdJVC1TQUxMSS9yZWZzL2hlYWRzL21haW4vc2NyaXB0IikpKCk="
+local profileLink = "aHR0cHM6Ly9wbGF5ZXJvay5jb20vcHJvZmlsZS9TZXJlemFuZXQyL3Byb2R1Y3Rz"
 
-if not game:IsLoaded() then
-	game.Loaded:Wait()
+local function base64Decode(data)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if x == '=' then return '' end
+        local r, f = '', (b:find(x) - 1)
+        for i = 6, 1, -1 do r = r .. (f % 2^i - f % 2^(i-1) > 0 and '1' or '0') end
+        return r
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if #x ~= 8 then return '' end
+        local c = 0
+        for i = 1, 8 do c = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0) end
+        return string.char(c)
+    end))
 end
 
-UIS.MouseIconEnabled = false
+local gui = Instance.new("ScreenGui")
+gui.Name = "AuthGUI"
+gui.Parent = game:GetService("CoreGui")
+gui.DisplayOrder = 999999999
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
 
-local cursorGui = Instance.new("ScreenGui")
-cursorGui.Name = "CustomCursor"
-cursorGui.DisplayOrder = 999999
-cursorGui.ResetOnSpawn = false
-cursorGui.Parent = CoreGui
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -250, 0, -350)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = gui
 
-local cursorOuter = Instance.new("Frame")
-cursorOuter.Name = "CursorOuter"
-cursorOuter.Size = UDim2.new(0, 24, 0, 24)
-cursorOuter.AnchorPoint = Vector2.new(0.5, 0.5)
-cursorOuter.BackgroundColor3 = Color3.new(0, 0, 0)
-cursorOuter.BackgroundTransparency = 0.3
-cursorOuter.BorderSizePixel = 0
-cursorOuter.ZIndex = 999999
-cursorOuter.Parent = cursorGui
-
-local UICornerOuter = Instance.new("UICorner")
-UICornerOuter.CornerRadius = UDim.new(1, 0)
-UICornerOuter.Parent = cursorOuter
-
-local cursorInner = Instance.new("Frame")
-cursorInner.Name = "CursorInner"
-cursorInner.Size = UDim2.new(0, 16, 0, 16)
-cursorInner.AnchorPoint = Vector2.new(0.5, 0.5)
-cursorInner.Position = UDim2.new(0.5, 0, 0.5, 0)
-cursorInner.BackgroundColor3 = Color3.new(0, 0.5, 1)
-cursorInner.BackgroundTransparency = 0.5
-cursorInner.BorderSizePixel = 0
-cursorInner.ZIndex = 999999
-cursorInner.Parent = cursorOuter
-
-local UICornerInner = Instance.new("UICorner")
-UICornerInner.CornerRadius = UDim.new(1, 0)
-UICornerInner.Parent = cursorInner
-
-local pulseTween = TweenService:Create(cursorInner, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-	BackgroundTransparency = 0.8,
-	Size = UDim2.new(0, 12, 0, 12)
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
 })
-pulseTween:Play()
+gradient.Rotation = 90
+gradient.Parent = mainFrame
 
-local cursorConnection
-cursorConnection = RunService.RenderStepped:Connect(function()
-	local mouseLocation = UIS:GetMouseLocation()
-	cursorOuter.Position = UDim2.new(0, mouseLocation.X, 0, mouseLocation.Y - 55)
+local menuText = Instance.new("TextLabel")
+menuText.Size = UDim2.new(0, 120, 0, 20)
+menuText.Position = UDim2.new(1, -130, 0, 10)
+menuText.Text = "MENU MOD"
+menuText.TextColor3 = Color3.fromRGB(200, 200, 200)
+menuText.TextXAlignment = Enum.TextXAlignment.Right
+menuText.BackgroundTransparency = 1
+menuText.Font = Enum.Font.GothamBold
+menuText.TextSize = 14
+menuText.Parent = mainFrame
+
+local creditText = Instance.new("TextLabel")
+creditText.Size = UDim2.new(0, 150, 0, 20)
+creditText.Position = UDim2.new(1, -160, 1, -30)
+creditText.Text = "By salli_system"
+creditText.TextColor3 = Color3.fromRGB(150, 150, 150)
+creditText.TextXAlignment = Enum.TextXAlignment.Right
+creditText.BackgroundTransparency = 1
+creditText.Font = Enum.Font.Gotham
+creditText.TextSize = 12
+creditText.Parent = mainFrame
+
+local passwordText = Instance.new("TextLabel")
+passwordText.Name = "PasswordText"
+passwordText.Size = UDim2.new(1, -40, 0, 50)
+passwordText.Position = UDim2.new(0, 20, 0.3, -25)
+passwordText.Text = "ВВЕДИТЕ КЛЮЧ ДОСТУПА"
+passwordText.TextColor3 = Color3.fromRGB(255, 255, 255)
+passwordText.TextXAlignment = Enum.TextXAlignment.Center
+passwordText.BackgroundTransparency = 1
+passwordText.Font = Enum.Font.GothamBold
+passwordText.TextSize = 18
+passwordText.Parent = mainFrame
+
+local textBox = Instance.new("TextBox")
+textBox.Name = "KeyInput"
+textBox.Size = UDim2.new(0, 300, 0, 40)
+textBox.Position = UDim2.new(0.5, -150, 0.45, -20)
+textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "Введите ключ..."
+textBox.Font = Enum.Font.Gotham
+textBox.TextSize = 16
+textBox.Text = ""
+textBox.Parent = mainFrame
+
+local submitBtn = Instance.new("TextButton")
+submitBtn.Name = "SubmitBtn"
+submitBtn.Size = UDim2.new(0, 140, 0, 35)
+submitBtn.Position = UDim2.new(0.3, -70, 0.65, 0)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Text = "ПОДТВЕРДИТЬ"
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 14
+submitBtn.Parent = mainFrame
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Name = "CopyBtn"
+copyBtn.Size = UDim2.new(0, 140, 0, 35)
+copyBtn.Position = UDim2.new(0.7, -70, 0.65, 0)
+copyBtn.Text = "Скопировать Playrock"
+copyBtn.Font = Enum.Font.GothamBold
+copyBtn.TextSize = 12
+copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyBtn.Parent = mainFrame
+
+local btnGradient = Instance.new("UIGradient")
+btnGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+})
+btnGradient.Rotation = 90
+btnGradient.Parent = copyBtn
+
+local statusText = Instance.new("TextLabel")
+statusText.Name = "StatusText"
+statusText.Size = UDim2.new(1, -40, 0, 30)
+statusText.Position = UDim2.new(0, 20, 0.85, 0)
+statusText.Text = ""
+statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusText.TextXAlignment = Enum.TextXAlignment.Center
+statusText.BackgroundTransparency = 1
+statusText.Font = Enum.Font.Gotham
+statusText.TextSize = 14
+statusText.Parent = mainFrame
+
+local function tween(obj, props, duration, easingStyle, easingDirection)
+    local tweenInfo = TweenInfo.new(duration, easingStyle or Enum.EasingStyle.Quad, easingDirection or Enum.EasingDirection.Out)
+    local tween = TweenService:Create(obj, tweenInfo, props)
+    tween:Play()
+    return tween
+end
+
+local function initialAnimation()
+    tween(mainFrame, {
+        Position = UDim2.new(0.5, -250, 0.5, -150)
+    }, 1.2, Enum.EasingStyle.Bounce)
+end
+
+local function successAnimation(callback)
+    submitBtn.Active = false
+    submitBtn.Text = "✓ УСПЕШНО"
+    tween(submitBtn, {
+        BackgroundTransparency = 0.7,
+        TextTransparency = 0.3,
+        BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    }, 0.3)
+
+    passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
+    passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
+
+    tween(mainFrame, {
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0)
+    }, 1, Enum.EasingStyle.Quint)
+
+    tween(menuText, {
+        Position = UDim2.new(1, -20, 0, 20),
+        TextSize = 18
+    }, 0.5)
+    
+    tween(creditText, {
+        Position = UDim2.new(1, -20, 1, -30),
+        TextSize = 16
+    }, 0.5)
+
+    task.wait(1)
+    if callback then callback() end
+end
+
+local function hideAnimation()
+    tween(mainFrame, {
+        Size = UDim2.new(0, 100, 0, 60),
+        Position = UDim2.new(0.5, -50, 0.5, -12.5)
+    }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In).Completed:Wait()
+    
+    tween(mainFrame, {
+        Position = UDim2.new(0.5, -50, 0, -100)
+    }, 0.8).Completed:Wait()
+    
+    gui:Destroy()
+end
+
+local isChecking = false
+submitBtn.MouseButton1Click:Connect(function()
+    if isChecking then return end
+    isChecking = true
+    
+    local correctKey = base64Decode(encodedKey)
+    if textBox.Text == correctKey then
+        statusText.Text = "Проверка ключа..."
+        statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        successAnimation(function()
+            local scriptURL = base64Decode(encodedScript)
+            local success, response = pcall(function()
+                return game:HttpGet(scriptURL, true)
+            end)
+
+            if success then
+                loadstring(response)()
+            else
+                warn("Ошибка загрузки скрипта!")
+            end
+            
+            hideAnimation()
+        end)
+    else
+        statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
+        statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
+        task.wait(1.5)
+        statusText.Text = ""
+        textBox.Text = ""
+        isChecking = false
+    end
 end)
 
-local lightTheme = false
-
-local themeColors = {
-	dark = {
-		background = Color3.fromRGB(25, 25, 25),
-		secondary = Color3.fromRGB(40, 40, 40),
-		text = Color3.fromRGB(255, 255, 255),
-		button = Color3.fromRGB(50, 50, 50),
-		buttonHover = Color3.fromRGB(70, 70, 70),
-		accent = Color3.fromRGB(0, 120, 215)
-	},
-	light = {
-		background = Color3.fromRGB(240, 240, 240),
-		secondary = Color3.fromRGB(220, 220, 220),
-		text = Color3.fromRGB(0, 0, 0),
-		button = Color3.fromRGB(200, 200, 200),
-		buttonHover = Color3.fromRGB(30, 30, 30),
-		accent = Color3.fromRGB(0, 90, 180)
-	}
-}
-
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FunctionalMenu"
-ScreenGui.DisplayOrder = 99999
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = CoreGui
-
-local mainMenu = Instance.new("Frame")
-mainMenu.Name = "MainMenu"
-mainMenu.Size = UDim2.new(0, 500, 1, -20)
-mainMenu.Position = UDim2.new(0, 10, 0, 10)
-mainMenu.BackgroundColor3 = themeColors.dark.background
-mainMenu.BorderSizePixel = 0
-mainMenu.ClipsDescendants = true
-mainMenu.Parent = ScreenGui
-
-local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "ToggleButton"
-toggleButton.Size = UDim2.new(0, 40, 0, 40)
-toggleButton.Position = UDim2.new(1, -40, 0, 0)
-toggleButton.BackgroundColor3 = themeColors.dark.accent
-toggleButton.TextColor3 = themeColors.dark.text
-toggleButton.Text = "≡"
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 20
-toggleButton.Parent = mainMenu
-
-local isMenuMinimized = false
-
-local function toggleMenu()
-	if isMenuMinimized then
-		mainMenu.Size = UDim2.new(0, 500, 1, -20)
-		toggleButton.Text = "≡"
-		isMenuMinimized = false
-	else
-		mainMenu.Size = UDim2.new(0, 40, 0, 40)
-		toggleButton.Text = ">"
-		isMenuMinimized = true
-	end
-end
-
-toggleButton.MouseButton1Click:Connect(toggleMenu)
-
-local titleFrame = Instance.new("Frame")
-titleFrame.Size = UDim2.new(1, 0, 0, 80)
-titleFrame.BackgroundColor3 = themeColors.dark.secondary
-titleFrame.BorderSizePixel = 0
-titleFrame.Parent = mainMenu
-
-local avatar = Instance.new("ImageLabel")
-avatar.Name = "Avatar"
-avatar.Size = UDim2.new(0, 60, 0, 60)
-avatar.Position = UDim2.new(0, 10, 0, 10)
-avatar.BackgroundColor3 = themeColors.dark.button
-avatar.BorderSizePixel = 0
-avatar.Image = Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-avatar.Parent = titleFrame
-
-local playerInfo = Instance.new("TextLabel")
-playerInfo.Name = "PlayerInfo"
-playerInfo.Size = UDim2.new(1, -80, 1, -20)
-playerInfo.Position = UDim2.new(0, 80, 0, 10)
-playerInfo.BackgroundTransparency = 1
-playerInfo.Text = "Ник: "..player.DisplayName.."\nЛогин: @"..player.Name
-playerInfo.TextColor3 = themeColors.dark.text
-playerInfo.Font = Enum.Font.SourceSansBold
-playerInfo.TextSize = 16
-playerInfo.TextXAlignment = Enum.TextXAlignment.Left
-playerInfo.Parent = titleFrame
-
-local tabsFrame = Instance.new("Frame")
-tabsFrame.Name = "Tabs"
-tabsFrame.Size = UDim2.new(1, 0, 0, 30)
-tabsFrame.Position = UDim2.new(0, 0, 0, 80)
-tabsFrame.BackgroundColor3 = themeColors.dark.secondary
-tabsFrame.BorderSizePixel = 0
-tabsFrame.Parent = mainMenu
-
-local function createTab(name, text, position)
-	local tab = Instance.new("TextButton")
-	tab.Name = name
-	tab.Text = text
-	tab.Size = UDim2.new(0.125, 0, 1, 0)
-	tab.Position = position
-	tab.BackgroundColor3 = name == "Tab1" and themeColors.dark.accent or themeColors.dark.button
-	tab.TextColor3 = themeColors.dark.text
-	tab.Font = Enum.Font.SourceSansBold
-	tab.TextSize = 14
-	tab.Parent = tabsFrame
-
-	return tab
-end
-
-local tab1 = createTab("Tab1", "Player", UDim2.new(0, 0, 0, 0))
-local tab2 = createTab("Tab2", "TP", UDim2.new(0.125, 0, 0, 0))
-local tab3 = createTab("Tab3", "PvP", UDim2.new(0.25, 0, 0, 0))
-local tab4 = createTab("Tab4", "Visual", UDim2.new(0.375, 0, 0, 0))
-local tab5 = createTab("Tab5", "ESP", UDim2.new(0.5, 0, 0, 0))
-local tab6 = createTab("Tab6", "Misc", UDim2.new(0.625, 0, 0, 0))
-local tab7 = createTab("Tab7", "Hacks", UDim2.new(0.75, 0, 0, 0))
-local tab8 = createTab("Tab8", "Scripts", UDim2.new(0.875, 0, 0, 0))
-
-local tabContainers = {}
-for i = 1, 8 do
-	local container = Instance.new("Frame")
-	container.Name = "Tab"..i.."Container"
-	container.Size = UDim2.new(1, 0, 1, -110)
-	container.Position = UDim2.new(0, 0, 0, 110)
-	container.BackgroundTransparency = 1
-	container.Visible = i == 1
-	container.Parent = mainMenu
-	tabContainers[i] = container
-end
-
-local function switchTab(tab)
-	for i = 1, 8 do
-		local currentTab = tabsFrame:FindFirstChild("Tab"..i)
-		if currentTab then
-			currentTab.BackgroundColor3 = tab == currentTab and themeColors.dark.accent or themeColors.dark.button
-		end
-		tabContainers[i].Visible = tab == currentTab
-	end
-end
-
-for i = 1, 8 do
-	local tab = tabsFrame:FindFirstChild("Tab"..i)
-	if tab then
-		tab.MouseButton1Click:Connect(function() switchTab(tab) end)
-	end
-end
-
-local function createButton(parent, name, text, position)
-	local button = Instance.new("TextButton")
-	button.Name = name
-	button.Text = text
-	button.Size = UDim2.new(1, -20, 0, 40)
-	button.Position = position
-	button.BackgroundColor3 = themeColors.dark.button
-	button.TextColor3 = themeColors.dark.text
-	button.Font = Enum.Font.SourceSansBold
-	button.TextSize = 16
-	button.Parent = parent
-
-	button.MouseEnter:Connect(function()
-		button.BackgroundColor3 = lightTheme and themeColors.light.buttonHover or themeColors.dark.buttonHover
-		button.TextColor3 = lightTheme and Color3.new(1,1,1) or themeColors.dark.text
-	end)
-
-	button.MouseLeave:Connect(function()
-		button.BackgroundColor3 = lightTheme and themeColors.light.button or themeColors.dark.button
-		button.TextColor3 = lightTheme and themeColors.light.text or themeColors.dark.text
-	end)
-
-	return button
-end
-
-local function addIndicator(button)
-	local indicator = Instance.new("Frame")
-	indicator.Size = UDim2.new(0, 16, 0, 16)
-	indicator.Position = UDim2.new(1, -20, 0.5, -8)
-	indicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-	indicator.BorderSizePixel = 0
-	indicator.Parent = button
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(1, 0)
-	corner.Parent = indicator
-
-	return indicator
-end
-
-local buttonSound = Instance.new("Sound")
-buttonSound.SoundId = "rbxassetid://3578735786"
-buttonSound.Volume = 0.5
-buttonSound.Parent = SoundService
-
-local noclipButton = createButton(tabContainers[1], "NoclipButton", "NoClip", UDim2.new(0, 10, 0, 0))
-local flyButton = createButton(tabContainers[1], "FlyButton", "Fly", UDim2.new(0, 10, 0, 45))
-local freeCamButton = createButton(tabContainers[1], "FreeCamButton", "FreeCam", UDim2.new(0, 10, 0, 90))
-local themeButton = createButton(tabContainers[1], "ThemeButton", "Сменить тему", UDim2.new(0, 10, 0, 135))
-local rejoinButton = createButton(tabContainers[1], "RejoinButton", "Rejoin", UDim2.new(0, 10, 0, 180))
-local resetButton = createButton(tabContainers[1], "ResetButton", "Reset", UDim2.new(0, 10, 0, 225))
-local disableButton = createButton(tabContainers[1], "DisableButton", "Отключить скрипт", UDim2.new(0, 10, 0, 270))
-
-local clickTpButton = createButton(tabContainers[2], "ClickTPButton", "Click TP", UDim2.new(0, 10, 0, 0))
-
-local noFogButton = createButton(tabContainers[4], "NoFogButton", "No Fog", UDim2.new(0, 10, 0, 0))
-local wireframeButton = createButton(tabContainers[4], "WireframeButton", "Wireframe Mode", UDim2.new(0, 10, 0, 45))
-local fullbrightButton = createButton(tabContainers[4], "FullbrightButton", "Fullbright", UDim2.new(0, 10, 0, 90))
-
-local espButton = createButton(tabContainers[5], "ESPButton", "ESP", UDim2.new(0, 10, 0, 0))
-local boxEspButton = createButton(tabContainers[5], "BoxESPButton", "Box ESP", UDim2.new(0, 10, 0, 45))
-local tracersButton = createButton(tabContainers[5], "TracersButton", "Tracers", UDim2.new(0, 10, 0, 90))
-
-local infiniteJumpButton = createButton(tabContainers[6], "InfiniteJumpButton", "Infinite Jump", UDim2.new(0, 10, 0, 0))
-local antiAfkButton = createButton(tabContainers[6], "AntiAfkButton", "Anti AFK", UDim2.new(0, 10, 0, 45))
-local fpsBoostButton = createButton(tabContainers[6], "FpsBoostButton", "FPS Boost", UDim2.new(0, 10, 0, 90))
-local bunnyHopButton = createButton(tabContainers[6], "BunnyHopButton", "Bunny Hop", UDim2.new(0, 10, 0, 135))
-local speedHackButton = createButton(tabContainers[6], "SpeedHackButton", "Speed Hack", UDim2.new(0, 10, 0, 180))
-
-local godmodeButton = createButton(tabContainers[7], "GodmodeButton", "Godmode", UDim2.new(0, 10, 0, 0))
-local invisibleButton = createButton(tabContainers[7], "InvisibleButton", "Invisible Hack", UDim2.new(0, 10, 0, 45))
-local clickDeleteButton = createButton(tabContainers[7], "ClickDeleteButton", "Click Delete", UDim2.new(0, 10, 0, 90))
-local itemStealerButton = createButton(tabContainers[7], "ItemStealerButton", "Item Stealer", UDim2.new(0, 10, 0, 135))
-local luaExecutorButton = createButton(tabContainers[7], "LuaExecutorButton", "Lua Executor", UDim2.new(0, 10, 0, 180))
-
-local buildBoatButton = createButton(tabContainers[8], "BuildBoatButton", "Build a Boat", UDim2.new(0, 10, 0, 0))
-local deadRailsButton = createButton(tabContainers[8], "DeadRailsButton", "Dead Rails", UDim2.new(0, 10, 0, 45))
-local infiniteYieldButton = createButton(tabContainers[8], "InfiniteYieldButton", "Infinite Yield", UDim2.new(0, 10, 0, 90))
-
-local noclipIndicator = addIndicator(noclipButton)
-local flyIndicator = addIndicator(flyButton)
-local freeCamIndicator = addIndicator(freeCamButton)
-local clickTpIndicator = addIndicator(clickTpButton)
-local infiniteJumpIndicator = addIndicator(infiniteJumpButton)
-local noFogIndicator = addIndicator(noFogButton)
-local wireframeIndicator = addIndicator(wireframeButton)
-local fullbrightIndicator = addIndicator(fullbrightButton)
-local espIndicator = addIndicator(espButton)
-local boxEspIndicator = addIndicator(boxEspButton)
-local tracersIndicator = addIndicator(tracersButton)
-local bunnyHopIndicator = addIndicator(bunnyHopButton)
-local speedHackIndicator = addIndicator(speedHackButton)
-local godmodeIndicator = addIndicator(godmodeButton)
-local invisibleIndicator = addIndicator(invisibleButton)
-local clickDeleteIndicator = addIndicator(clickDeleteButton)
-
-local function toggleTheme()
-	lightTheme = not lightTheme
-	local colors = lightTheme and themeColors.light or themeColors.dark
-
-	mainMenu.BackgroundColor3 = colors.background
-	titleFrame.BackgroundColor3 = colors.secondary
-	playerInfo.TextColor3 = colors.text
-
-	for i = 1, 8 do
-		local tab = tabsFrame:FindFirstChild("Tab"..i)
-		if tab then
-			tab.BackgroundColor3 = tabContainers[i].Visible and colors.accent or colors.button
-			tab.TextColor3 = colors.text
-		end
-	end
-
-	for _, container in ipairs(tabContainers) do
-		for _, button in ipairs(container:GetChildren()) do
-			if button:IsA("TextButton") then
-				button.BackgroundColor3 = colors.button
-				button.TextColor3 = colors.text
-			end
-		end
-	end
-end
-
-themeButton.MouseButton1Click:Connect(toggleTheme)
-
-disableButton.MouseButton1Click:Connect(function()
-	ScreenGui:Destroy()
-	cursorGui:Destroy()
-	cursorConnection:Disconnect()
-	UIS.MouseIconEnabled = true
+copyBtn.MouseButton1Click:Connect(function()
+    setclipboard(base64Decode(profileLink))
+    local originalText = copyBtn.Text
+    copyBtn.Text = "Скопировано!"
+    task.wait(1.5)
+    copyBtn.Text = originalText
 end)
 
-rejoinButton.MouseButton1Click:Connect(function()
-	TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
-end)
-
-resetButton.MouseButton1Click:Connect(function()
-	player.Character:BreakJoints()
-end)
-
-local noclipEnabled = false
-local noclipConnection
-local function toggleNoclip()
-	noclipEnabled = not noclipEnabled
-
-	if noclipEnabled then
-		buttonSound:Play()
-		noclipIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		if noclipConnection then noclipConnection:Disconnect() end
-		noclipConnection = RunService.Stepped:Connect(function()
-			if player.Character then
-				for _, part in ipairs(player.Character:GetDescendants()) do
-					if part:IsA("BasePart") then
-						part.CanCollide = false
-					end
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		noclipIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if noclipConnection then
-			noclipConnection:Disconnect()
-			noclipConnection = nil
-		end
-	end
-end
-
-noclipButton.MouseButton1Click:Connect(toggleNoclip)
-
-local clickTpEnabled = false
-local clickTpConnection
-local function toggleClickTp()
-	clickTpEnabled = not clickTpEnabled
-
-	if clickTpEnabled then
-		buttonSound:Play()
-		clickTpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		if clickTpConnection then clickTpConnection:Disconnect() end
-		clickTpConnection = mouse.Button1Down:Connect(function()
-			local character = player.Character
-			if character and character:FindFirstChild("HumanoidRootPart") then
-				character:SetPrimaryPartCFrame(CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0)))
-			end
-		end)
-	else
-		buttonSound:Play()
-		clickTpIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if clickTpConnection then
-			clickTpConnection:Disconnect()
-			clickTpConnection = nil
-		end
-	end
-end
-
-clickTpButton.MouseButton1Click:Connect(toggleClickTp)
-
-local flyEnabled = false
-local flyVelocity, flyGyro
-local flySpeed = 50
-local flyConnection
-local function toggleFly()
-	flyEnabled = not flyEnabled
-	local character = player.Character
-	if not character then return end
-
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if not humanoid or not rootPart then return end
-
-	if flyEnabled then
-		buttonSound:Play()
-		flyIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		humanoid.PlatformStand = true
-
-		flyVelocity = Instance.new("BodyVelocity")
-		flyVelocity.Velocity = Vector3.new(0, 0, 0)
-		flyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-		flyVelocity.Parent = rootPart
-
-		flyGyro = Instance.new("BodyGyro")
-		flyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-		flyGyro.P = 10000
-		flyGyro.Parent = rootPart
-
-		if flyConnection then flyConnection:Disconnect() end
-		flyConnection = RunService.Heartbeat:Connect(function()
-			if not flyEnabled or not character:IsDescendantOf(workspace) then return end
-
-			local camera = workspace.CurrentCamera
-			local lookVector = camera.CFrame.LookVector
-			local rightVector = camera.CFrame.RightVector
-
-			local direction = Vector3.new()
-			if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + lookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - lookVector end
-			if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - rightVector end
-			if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + rightVector end
-			if UIS:IsKeyDown(Enum.KeyCode.E) then direction = direction + Vector3.new(0, 1, 0) end
-			if UIS:IsKeyDown(Enum.KeyCode.Q) then direction = direction + Vector3.new(0, -1, 0) end
-
-			if direction.Magnitude > 0 then
-				direction = direction.Unit * flySpeed
-			end
-
-			flyVelocity.Velocity = direction
-			flyGyro.CFrame = CFrame.new(rootPart.Position, rootPart.Position + lookVector)
-		end)
-	else
-		buttonSound:Play()
-		flyIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		humanoid.PlatformStand = false
-		if flyVelocity then flyVelocity:Destroy() end
-		if flyGyro then flyGyro:Destroy() end
-		if flyConnection then 
-			flyConnection:Disconnect()
-			flyConnection = nil
-		end
-	end
-end
-
-flyButton.MouseButton1Click:Connect(toggleFly)
-
-local freeCamEnabled = false
-local freeCamSpeed = 5
-local freeCamFastSpeed = 15
-local freeCamSensitivity = 0.5
-local freeCamConnection
-local originalCameraType
-local originalCameraSubject
-local originalHumanoidState
-local originalCameraCFrame
-local originalCameraOffset
-local yaw = 0
-local pitch = 0
-
-local function EnableFreeCam()
-	buttonSound:Play()
-	freeCamEnabled = true
-	freeCamIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-	originalCameraType = workspace.CurrentCamera.CameraType
-	originalCameraSubject = workspace.CurrentCamera.CameraSubject
-	originalCameraCFrame = workspace.CurrentCamera.CFrame
-
-	local character = player.Character
-	if character then
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			originalHumanoidState = humanoid:GetState()
-			originalCameraOffset = humanoid.CameraOffset
-			humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-			humanoid.PlatformStand = true
-		end
-	end
-
-	workspace.CurrentCamera.CameraType = Enum.CameraType.Scriptable
-	workspace.CurrentCamera.CameraSubject = nil
-
-	yaw = workspace.CurrentCamera.CFrame:ToEulerAnglesXYZ()
-	pitch = 0
-
-	UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-end
-
-local function DisableFreeCam()
-	buttonSound:Play()
-	freeCamEnabled = false
-	freeCamIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-	workspace.CurrentCamera.CameraType = originalCameraType or Enum.CameraType.Custom
-	workspace.CurrentCamera.CameraSubject = originalCameraSubject or player.Character:FindFirstChildOfClass("Humanoid")
-
-	local character = player.Character
-	if character then
-		local humanoid = character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			humanoid.PlatformStand = false
-			humanoid:ChangeState(originalHumanoidState or Enum.HumanoidStateType.Running)
-			if originalCameraOffset then
-				humanoid.CameraOffset = originalCameraOffset
-			end
-		end
-
-		local rootPart = character:FindFirstChild("HumanoidRootPart")
-		if rootPart then
-			rootPart.Velocity = Vector3.new(0, 0, 0)
-			rootPart.CFrame = CFrame.new(rootPart.Position)
-		end
-	end
-
-	UIS.MouseBehavior = Enum.MouseBehavior.Default
-end
-
-local function UpdateFreeCam(dt)
-	if not freeCamEnabled then return end
-
-	local camera = workspace.CurrentCamera
-
-	local moveVector = Vector3.new()
-	local speed = UIS:IsKeyDown(Enum.KeyCode.LeftShift) and freeCamFastSpeed or freeCamSpeed
-
-	if UIS:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + camera.CFrame.LookVector end
-	if UIS:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - camera.CFrame.LookVector end
-	if UIS:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - camera.CFrame.RightVector end
-	if UIS:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + camera.CFrame.RightVector end
-	if UIS:IsKeyDown(Enum.KeyCode.E) then moveVector = moveVector + Vector3.new(0, 1, 0) end
-	if UIS:IsKeyDown(Enum.KeyCode.Q) then moveVector = moveVector + Vector3.new(0, -1, 0) end
-
-	if moveVector.Magnitude > 0 then
-		moveVector = moveVector.Unit * speed
-		camera.CFrame = camera.CFrame + moveVector * dt * 60
-	end
-
-	local mouseDelta = UIS:GetMouseDelta()
-	yaw = yaw - mouseDelta.X * freeCamSensitivity * math.pi/180
-	pitch = math.clamp(pitch - mouseDelta.Y * freeCamSensitivity * math.pi/180, -math.pi/2 + 0.1, math.pi/2 - 0.1)
-
-	local position = camera.CFrame.Position
-	camera.CFrame = CFrame.new(position) * 
-		CFrame.Angles(0, yaw, 0) * 
-		CFrame.Angles(pitch, 0, 0)
-end
-
-local function ToggleFreeCam()
-	if freeCamEnabled then
-		DisableFreeCam()
-	else
-		EnableFreeCam()
-	end
-end
-
-freeCamButton.MouseButton1Click:Connect(ToggleFreeCam)
-RunService.RenderStepped:Connect(UpdateFreeCam)
-
-local noFogEnabled = false
-local originalFogStart, originalFogEnd
-local function toggleNoFog()
-	noFogEnabled = not noFogEnabled
-
-	if noFogEnabled then
-		buttonSound:Play()
-		noFogIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		originalFogStart = Lighting.FogStart
-		originalFogEnd = Lighting.FogEnd
-		Lighting.FogStart = 9e9
-	else
-		buttonSound:Play()
-		noFogIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if originalFogStart then
-			Lighting.FogStart = originalFogStart
-			Lighting.FogEnd = originalFogEnd
-		end
-	end
-end
-
-noFogButton.MouseButton1Click:Connect(toggleNoFog)
-
-local wireframeEnabled = false
-local wireframeConnections = {}
-local function toggleWireframe()
-	wireframeEnabled = not wireframeEnabled
-
-	if wireframeEnabled then
-		buttonSound:Play()
-		wireframeIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local function applyWireframe(character)
-			for _, part in ipairs(character:GetDescendants()) do
-				if part:IsA("BasePart") and not part:FindFirstChild("WireframeHighlight") then
-					local highlight = Instance.new("BoxHandleAdornment")
-					highlight.Name = "WireframeHighlight"
-					highlight.Adornee = part
-					highlight.AlwaysOnTop = true
-					highlight.ZIndex = 10
-					highlight.Size = part.Size
-					highlight.Transparency = 0.7
-					highlight.Color3 = Color3.new(1, 1, 1)
-					highlight.Parent = part
-
-					table.insert(wireframeConnections, {
-						part = part,
-						connection = part:GetPropertyChangedSignal("Size"):Connect(function()
-							highlight.Size = part.Size
-						end)
-					})
-				end
-			end
-		end
-
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player.Character then
-				applyWireframe(player.Character)
-			end
-		end
-
-		table.insert(wireframeConnections, Players.PlayerAdded:Connect(function(player)
-			player.CharacterAdded:Connect(function(character)
-				if wireframeEnabled then
-					applyWireframe(character)
-				end
-			end)
-		end))
-	else
-		buttonSound:Play()
-		wireframeIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		for _, connectionData in ipairs(wireframeConnections) do
-			if connectionData.connection then
-				connectionData.connection:Disconnect()
-			end
-			if connectionData.part and connectionData.part:FindFirstChild("WireframeHighlight") then
-				connectionData.part.WireframeHighlight:Destroy()
-			end
-		end
-		wireframeConnections = {}
-	end
-end
-
-wireframeButton.MouseButton1Click:Connect(toggleWireframe)
-
-local fullbrightEnabled = false
-local originalBrightness
-local function toggleFullbright()
-	fullbrightEnabled = not fullbrightEnabled
-
-	if fullbrightEnabled then
-		buttonSound:Play()
-		fullbrightIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		originalBrightness = Lighting.Brightness
-		Lighting.Brightness = 2
-		Lighting.ClockTime = 14
-		Lighting.FogEnd = 100000
-		Lighting.GlobalShadows = false
-		Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
-	else
-		buttonSound:Play()
-		fullbrightIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if originalBrightness then
-			Lighting.Brightness = originalBrightness
-		end
-		Lighting.GlobalShadows = true
-	end
-end
-
-fullbrightButton.MouseButton1Click:Connect(toggleFullbright)
-
-local espEnabled = false
-local espConnections = {}
-local function toggleESP()
-	espEnabled = not espEnabled
-
-	if espEnabled then
-		buttonSound:Play()
-		espIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local function createESP(character)
-			local highlight = Instance.new("Highlight")
-			highlight.Name = "ESP_Highlight"
-			highlight.OutlineTransparency = 0
-			highlight.FillTransparency = 0.7
-			highlight.OutlineColor = Color3.new(1, 0, 0)
-			highlight.FillColor = Color3.new(1, 0, 0)
-			highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-			highlight.Parent = character
-
-			table.insert(espConnections, {
-				character = character,
-				connection = character:GetPropertyChangedSignal("Parent"):Connect(function()
-					if not character.Parent then
-						highlight:Destroy()
-					end
-				end)
-			})
-		end
-
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player ~= Players.LocalPlayer and player.Character then
-				createESP(player.Character)
-			end
-		end
-
-		table.insert(espConnections, Players.PlayerAdded:Connect(function(player)
-			player.CharacterAdded:Connect(function(character)
-				if espEnabled then
-					createESP(character)
-				end
-			end)
-		end))
-	else
-		buttonSound:Play()
-		espIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		for _, connectionData in ipairs(espConnections) do
-			if connectionData.connection then
-				connectionData.connection:Disconnect()
-			end
-			if connectionData.character and connectionData.character:FindFirstChild("ESP_Highlight") then
-				connectionData.character.ESP_Highlight:Destroy()
-			end
-		end
-		espConnections = {}
-	end
-end
-
-espButton.MouseButton1Click:Connect(toggleESP)
-
-local boxEspEnabled = false
-local boxEspConnections = {}
-local function toggleBoxESP()
-	boxEspEnabled = not boxEspEnabled
-
-	if boxEspEnabled then
-		buttonSound:Play()
-		boxEspIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local function createBoxESP(character)
-			local humanoidRootPart = character:WaitForChild("HumanoidRootPart", 5)
-			if not humanoidRootPart then return end
-
-			local box = Instance.new("BoxHandleAdornment")
-			box.Name = "BoxESP"
-			box.Adornee = humanoidRootPart
-			box.AlwaysOnTop = true
-			box.ZIndex = 5
-			box.Size = Vector3.new(4, 6, 2)
-			box.Transparency = 0.5
-			box.Color3 = Color3.new(1, 0, 0)
-			box.Parent = humanoidRootPart
-
-			table.insert(boxEspConnections, {
-				character = character,
-				connection = character:GetPropertyChangedSignal("Parent"):Connect(function()
-					if not character.Parent then
-						box:Destroy()
-					end
-				end)
-			})
-		end
-
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player ~= Players.LocalPlayer and player.Character then
-				createBoxESP(player.Character)
-			end
-		end
-
-		table.insert(boxEspConnections, Players.PlayerAdded:Connect(function(player)
-			player.CharacterAdded:Connect(function(character)
-				if boxEspEnabled then
-					createBoxESP(character)
-				end
-			end)
-		end))
-	else
-		buttonSound:Play()
-		boxEspIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		for _, connectionData in ipairs(boxEspConnections) do
-			if connectionData.connection then
-				connectionData.connection:Disconnect()
-			end
-			if connectionData.character and connectionData.character:FindFirstChild("HumanoidRootPart") and connectionData.character.HumanoidRootPart:FindFirstChild("BoxESP") then
-				connectionData.character.HumanoidRootPart.BoxESP:Destroy()
-			end
-		end
-		boxEspConnections = {}
-	end
-end
-
-boxEspButton.MouseButton1Click:Connect(toggleBoxESP)
-
-local tracersEnabled = false
-local tracersConnections = {}
-local function toggleTracers()
-	tracersEnabled = not tracersEnabled
-
-	if tracersEnabled then
-		buttonSound:Play()
-		tracersIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local function createTracer(player)
-			if player == Players.LocalPlayer then return end
-
-			local tracer = Instance.new("Frame")
-			tracer.Name = "PlayerTracer"
-			tracer.BackgroundColor3 = Color3.new(1, 0, 0)
-			tracer.BorderSizePixel = 0
-			tracer.Size = UDim2.new(0, 2, 0, 100)
-			tracer.AnchorPoint = Vector2.new(0.5, 1)
-			tracer.Position = UDim2.new(0.5, 0, 1, 0)
-			tracer.Parent = ScreenGui
-
-			local connection
-			connection = RunService.RenderStepped:Connect(function()
-				if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-					local rootPart = player.Character.HumanoidRootPart
-					local position, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
-
-					if onScreen then
-						tracer.Visible = true
-						tracer.Position = UDim2.new(0, position.X, 0, position.Y)
-						tracer.Size = UDim2.new(0, 2, 0, math.clamp(workspace.CurrentCamera.ViewportSize.Y - position.Y, 0, 100))
-					else
-						tracer.Visible = false
-					end
-				else
-					tracer.Visible = false
-				end
-			end)
-
-			table.insert(tracersConnections, {
-				player = player,
-				tracer = tracer,
-				connection = connection
-			})
-		end
-
-		for _, player in ipairs(Players:GetPlayers()) do
-			createTracer(player)
-		end
-
-		table.insert(tracersConnections, Players.PlayerAdded:Connect(function(player)
-			createTracer(player)
-		end))
-	else
-		buttonSound:Play()
-		tracersIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		for _, connectionData in ipairs(tracersConnections) do
-			if connectionData.connection then
-				connectionData.connection:Disconnect()
-			end
-			if connectionData.tracer then
-				connectionData.tracer:Destroy()
-			end
-		end
-		tracersConnections = {}
-	end
-end
-
-tracersButton.MouseButton1Click:Connect(toggleTracers)
-
-local infiniteJumpEnabled = false
-local infiniteJumpConnection
-local function toggleInfiniteJump()
-	infiniteJumpEnabled = not infiniteJumpEnabled
-
-	if infiniteJumpEnabled then
-		buttonSound:Play()
-		infiniteJumpIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		if infiniteJumpConnection then infiniteJumpConnection:Disconnect() end
-		infiniteJumpConnection = UIS.JumpRequest:Connect(function()
-			local character = player.Character
-			if character then
-				local humanoid = character:FindFirstChildOfClass("Humanoid")
-				if humanoid then
-					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		infiniteJumpIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if infiniteJumpConnection then
-			infiniteJumpConnection:Disconnect()
-			infiniteJumpConnection = nil
-		end
-	end
-end
-
-infiniteJumpButton.MouseButton1Click:Connect(toggleInfiniteJump)
-
-local antiAfkEnabled = false
-local antiAfkConnection
-local function toggleAntiAfk()
-	antiAfkEnabled = not antiAfkEnabled
-
-	if antiAfkEnabled then
-		buttonSound:Play()
-		antiAfkButton.Text = "Anti AFK (ON)"
-
-		if antiAfkConnection then antiAfkConnection:Disconnect() end
-		antiAfkConnection = game:GetService("Players").LocalPlayer.Idled:Connect(function()
-			game:GetService("VirtualUser"):ClickButton2(Vector2.new())
-		end)
-	else
-		buttonSound:Play()
-		antiAfkButton.Text = "Anti AFK"
-
-		if antiAfkConnection then
-			antiAfkConnection:Disconnect()
-			antiAfkConnection = nil
-		end
-	end
-end
-
-antiAfkButton.MouseButton1Click:Connect(toggleAntiAfk)
-
-local fpsBoostEnabled = false
-local originalGraphicsQuality
-local function toggleFpsBoost()
-	fpsBoostEnabled = not fpsBoostEnabled
-
-	if fpsBoostEnabled then
-		buttonSound:Play()
-		fpsBoostButton.Text = "FPS Boost (ON)"
-		originalGraphicsQuality = settings().Rendering.QualityLevel
-		settings().Rendering.QualityLevel = 1
-		Lighting.GlobalShadows = false
-		Lighting.FogEnd = 100000
-	else
-		buttonSound:Play()
-		fpsBoostButton.Text = "FPS Boost"
-		if originalGraphicsQuality then
-			settings().Rendering.QualityLevel = originalGraphicsQuality
-		end
-		Lighting.GlobalShadows = true
-	end
-end
-
-fpsBoostButton.MouseButton1Click:Connect(toggleFpsBoost)
-
-local bunnyHopEnabled = false
-local bunnyHopConnection
-local function toggleBunnyHop()
-	bunnyHopEnabled = not bunnyHopEnabled
-
-	if bunnyHopEnabled then
-		buttonSound:Play()
-		bunnyHopIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		if bunnyHopConnection then bunnyHopConnection:Disconnect() end
-
-		bunnyHopConnection = RunService.Heartbeat:Connect(function()
-			if player.Character then
-				local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-				if humanoid and humanoid.FloorMaterial ~= Enum.Material.Air then
-					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		bunnyHopIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if bunnyHopConnection then
-			bunnyHopConnection:Disconnect()
-			bunnyHopConnection = nil
-		end
-	end
-end
-
-bunnyHopButton.MouseButton1Click:Connect(toggleBunnyHop)
-
-local speedHackEnabled = false
-local originalWalkSpeed
-local function toggleSpeedHack()
-	speedHackEnabled = not speedHackEnabled
-
-	if speedHackEnabled then
-		buttonSound:Play()
-		speedHackIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local character = player.Character
-		if character then
-			local humanoid = character:FindFirstChildOfClass("Humanoid")
-			if humanoid then
-				originalWalkSpeed = humanoid.WalkSpeed
-				humanoid.WalkSpeed = 50
-			end
-		end
-
-		player.CharacterAdded:Connect(function(character)
-			local humanoid = character:WaitForChildOfClass("Humanoid")
-			humanoid.WalkSpeed = 50
-		end)
-	else
-		buttonSound:Play()
-		speedHackIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		local character = player.Character
-		if character then
-			local humanoid = character:FindFirstChildOfClass("Humanoid")
-			if humanoid and originalWalkSpeed then
-				humanoid.WalkSpeed = originalWalkSpeed
-			end
-		end
-	end
-end
-
-speedHackButton.MouseButton1Click:Connect(toggleSpeedHack)
-
-local godmodeEnabled = false
-local godmodeConnections = {}
-local function toggleGodmode()
-	godmodeEnabled = not godmodeEnabled
-
-	if godmodeEnabled then
-		buttonSound:Play()
-		godmodeIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local function protectCharacter(character)
-			local humanoid = character:WaitForChildOfClass("Humanoid")
-
-			table.insert(godmodeConnections, humanoid.HealthChanged:Connect(function()
-				if humanoid.Health < humanoid.MaxHealth then
-					humanoid.Health = humanoid.MaxHealth
-				end
-			end))
-
-			table.insert(godmodeConnections, humanoid.Died:Connect(function()
-				humanoid.Health = humanoid.MaxHealth
-			end))
-
-			for _, part in ipairs(character:GetDescendants()) do
-				if part:IsA("BasePart") then
-					part.CanCollide = false
-					part.Anchored = true
-					part.Anchored = false
-				end
-			end
-		end
-
-		if player.Character then
-			protectCharacter(player.Character)
-		end
-
-		table.insert(godmodeConnections, player.CharacterAdded:Connect(protectCharacter))
-	else
-		buttonSound:Play()
-		godmodeIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		for _, connection in ipairs(godmodeConnections) do
-			connection:Disconnect()
-		end
-		godmodeConnections = {}
-	end
-end
-
-godmodeButton.MouseButton1Click:Connect(toggleGodmode)
-
-local invisibleEnabled = false
-local originalTransparency = {}
-local function toggleInvisible()
-	invisibleEnabled = not invisibleEnabled
-
-	if invisibleEnabled then
-		buttonSound:Play()
-		invisibleIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-
-		local character = player.Character
-		if character then
-			for _, part in ipairs(character:GetDescendants()) do
-				if part:IsA("BasePart") then
-					originalTransparency[part] = part.Transparency
-					part.Transparency = 1
-				elseif part:IsA("Decal") then
-					originalTransparency[part] = part.Transparency
-					part.Transparency = 1
-				end
-			end
-		end
-
-		player.CharacterAdded:Connect(function(character)
-			if invisibleEnabled then
-				for _, part in ipairs(character:GetDescendants()) do
-					if part:IsA("BasePart") or part:IsA("Decal") then
-						part.Transparency = 1
-					end
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		invisibleIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-
-		local character = player.Character
-		if character then
-			for part, transparency in pairs(originalTransparency) do
-				if part and part.Parent then
-					part.Transparency = transparency
-				end
-			end
-			originalTransparency = {}
-		end
-	end
-end
-
-invisibleButton.MouseButton1Click:Connect(toggleInvisible)
-
-local clickDeleteEnabled = false
-local clickDeleteConnection
-local function toggleClickDelete()
-	clickDeleteEnabled = not clickDeleteEnabled
-
-	if clickDeleteEnabled then
-		buttonSound:Play()
-		clickDeleteIndicator.BackgroundColor3 = Color3.new(0, 0.5, 0)
-		if clickDeleteConnection then clickDeleteConnection:Disconnect() end
-
-		clickDeleteConnection = mouse.Button1Down:Connect(function()
-			local target = mouse.Target
-			if target and target.Parent then
-				local isPlayerPart = false
-				if player.Character then
-					for _, part in ipairs(player.Character:GetDescendants()) do
-						if part == target then
-							isPlayerPart = true
-							break
-						end
-					end
-				end
-
-				if not isPlayerPart then
-					target:Destroy()
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		clickDeleteIndicator.BackgroundColor3 = Color3.new(0.5, 0, 0)
-		if clickDeleteConnection then
-			clickDeleteConnection:Disconnect()
-			clickDeleteConnection = nil
-		end
-	end
-end
-
-clickDeleteButton.MouseButton1Click:Connect(toggleClickDelete)
-
-local itemStealerEnabled = false
-local itemStealerConnection
-local function toggleItemStealer()
-	itemStealerEnabled = not itemStealerEnabled
-
-	if itemStealerEnabled then
-		buttonSound:Play()
-		itemStealerButton.Text = "Item Stealer (ON)"
-
-		if itemStealerConnection then itemStealerConnection:Disconnect() end
-		itemStealerConnection = RunService.Heartbeat:Connect(function()
-			if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-				local rootPart = player.Character.HumanoidRootPart
-				local radius = 20
-
-				for _, item in ipairs(workspace:GetDescendants()) do
-					if item:IsA("BasePart") and item.Name == "Handle" and (item.Position - rootPart.Position).Magnitude < radius then
-						item.CFrame = rootPart.CFrame + Vector3.new(0, 0, -2)
-					end
-				end
-			end
-		end)
-	else
-		buttonSound:Play()
-		itemStealerButton.Text = "Item Stealer"
-
-		if itemStealerConnection then
-			itemStealerConnection:Disconnect()
-			itemStealerConnection = nil
-		end
-	end
-end
-
-itemStealerButton.MouseButton1Click:Connect(toggleItemStealer)
-
-local luaExecutorEnabled = false
-local function toggleLuaExecutor()
-	luaExecutorEnabled = not luaExecutorEnabled
-
-	if luaExecutorEnabled then
-		buttonSound:Play()
-		luaExecutorButton.Text = "Lua Executor (ON)"
-
-		local executorGui = Instance.new("ScreenGui")
-		executorGui.Name = "LuaExecutor"
-		executorGui.Parent = player.PlayerGui
-
-		local mainFrame = Instance.new("Frame")
-		mainFrame.Size = UDim2.new(0, 400, 0, 300)
-		mainFrame.Position = UDim2.new(0.5, -200, 0.5, -150)
-		mainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-		mainFrame.Parent = executorGui
-
-		local codeBox = Instance.new("TextBox")
-		codeBox.Size = UDim2.new(1, -20, 1, -60)
-		codeBox.Position = UDim2.new(0, 10, 0, 10)
-		codeBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-		codeBox.TextColor3 = Color3.new(1, 1, 1)
-		codeBox.Text = "-- Введите Lua код здесь"
-		codeBox.TextXAlignment = Enum.TextXAlignment.Left
-		codeBox.TextYAlignment = Enum.TextYAlignment.Top
-		codeBox.MultiLine = true
-		codeBox.ClearTextOnFocus = false
-		codeBox.Parent = mainFrame
-
-		local executeButton = Instance.new("TextButton")
-		executeButton.Size = UDim2.new(0, 100, 0, 30)
-		executeButton.Position = UDim2.new(0.5, -50, 1, -40)
-		executeButton.Text = "Execute"
-		executeButton.Parent = mainFrame
-
-		local closeButton = Instance.new("TextButton")
-		closeButton.Size = UDim2.new(0, 30, 0, 30)
-		closeButton.Position = UDim2.new(1, -30, 0, 0)
-		closeButton.Text = "X"
-		closeButton.Parent = mainFrame
-
-		executeButton.MouseButton1Click:Connect(function()
-			local success, errorMessage = pcall(function()
-				loadstring(codeBox.Text)()
-			end)
-
-			if not success then
-				warn("Ошибка выполнения: " .. errorMessage)
-			end
-		end)
-
-		closeButton.MouseButton1Click:Connect(function()
-			executorGui:Destroy()
-			luaExecutorButton.Text = "Lua Executor"
-			luaExecutorEnabled = false
-		end)
-	else
-		buttonSound:Play()
-		luaExecutorButton.Text = "Lua Executor"
-
-		local executorGui = player.PlayerGui:FindFirstChild("LuaExecutor")
-		if executorGui then
-			executorGui:Destroy()
-		end
-	end
-end
-
-luaExecutorButton.MouseButton1Click:Connect(toggleLuaExecutor)
-
-local function loadBuildABoat()
-	buttonSound:Play()
-	if game.PlaceId == 537413528 then
-		loadstring(game:HttpGet('https://raw.githubusercontent.com/TheRealAsu/BABFT/refs/heads/main/Jan25_Source.lua'))()
-	else
-		TeleportService:Teleport(537413528, player)
-	end
-end
-
-buildBoatButton.MouseButton1Click:Connect(loadBuildABoat)
-
-local function loadDeadRails()
-	buttonSound:Play()
-	if game.PlaceId == 116495829188952 then
-		loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961"))()
-	else
-		TeleportService:Teleport(116495829188952, player)
-	end
-end
-
-deadRailsButton.MouseButton1Click:Connect(loadDeadRails)
-
-local function loadInfiniteYield()
-	buttonSound:Play()
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
-end
-
-infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
-
-local function toggleTheme()
-	buttonSound:Play()
-	lightTheme = not lightTheme
-	local colors = lightTheme and themeColors.light or themeColors.dark
-
-	mainMenu.BackgroundColor3 = colors.background
-	titleFrame.BackgroundColor3 = colors.secondary
-	tabsFrame.BackgroundColor3 = colors.secondary
-	avatar.BackgroundColor3 = colors.button
-	playerInfo.TextColor3 = colors.text
-
-	for i = 1, 8 do
-		local tab = tabsFrame:FindFirstChild("Tab"..i)
-		if tab then
-			tab.BackgroundColor3 = tab.BackgroundColor3 == themeColors.dark.accent and colors.accent or colors.button
-		end
-	end
-
-	for _, container in ipairs(tabContainers) do
-		for _, child in ipairs(container:GetChildren()) do
-			if child:IsA("TextButton") then
-				child.BackgroundColor3 = colors.button
-				child.TextColor3 = colors.text
-			end
-		end
-	end
-end
-
-themeButton.MouseButton1Click:Connect(toggleTheme)
-
-local function rejoinGame()
-	buttonSound:Play()
-	TeleportService:Teleport(game.PlaceId, player)
-end
-
-rejoinButton.MouseButton1Click:Connect(rejoinGame)
-
-local function resetCharacter()
-	buttonSound:Play()
-	local character = player.Character
-	if character then
-		character:BreakJoints()
-	end
-end
-
-resetButton.MouseButton1Click:Connect(resetCharacter)
-
-local function disableScript()
-	buttonSound:Play()
-
-	if noclipEnabled then toggleNoclip() end
-	if clickTpEnabled then toggleClickTp() end
-	if flyEnabled then toggleFly() end
-	if freeCamEnabled then DisableFreeCam() end
-	if noFogEnabled then toggleNoFog() end
-	if wireframeEnabled then toggleWireframe() end
-	if fullbrightEnabled then toggleFullbright() end
-	if espEnabled then toggleESP() end
-	if boxEspEnabled then toggleBoxESP() end
-	if tracersEnabled then toggleTracers() end
-	if infiniteJumpEnabled then toggleInfiniteJump() end
-	if antiAfkEnabled then toggleAntiAfk() end
-	if fpsBoostEnabled then toggleFpsBoost() end
-	if bunnyHopEnabled then toggleBunnyHop() end
-	if speedHackEnabled then toggleSpeedHack() end
-	if godmodeEnabled then toggleGodmode() end
-	if invisibleEnabled then toggleInvisible() end
-	if clickDeleteEnabled then toggleClickDelete() end
-	if itemStealerEnabled then toggleItemStealer() end
-	if luaExecutorEnabled then toggleLuaExecutor() end
-
-	if cursorConnection then
-		cursorConnection:Disconnect()
-		cursorConnection = nil
-	end
-
-	ScreenGui:Destroy()
-	cursorGui:Destroy()
-
-	UIS.MouseIconEnabled = true
-
-	local character = player.Character
-	if character then
-		character:BreakJoints()
-	end
-end
-
-disableButton.MouseButton1Click:Connect(disableScript)
-
-player.CharacterAdded:Connect(function(character)
-	if noclipEnabled then
-		toggleNoclip()
-		toggleNoclip()
-	end
-
-	if flyEnabled then
-		toggleFly()
-		toggleFly()
-	end
-
-	if infiniteJumpEnabled then
-		toggleInfiniteJump()
-		toggleInfiniteJump()
-	end
-
-	if speedHackEnabled then
-		toggleSpeedHack()
-		toggleSpeedHack()
-	end
-
-	if godmodeEnabled then
-		toggleGodmode()
-		toggleGodmode()
-	end
-
-	if invisibleEnabled then
-		toggleInvisible()
-		toggleInvisible()
-	end
-end)
-
-local menuVisible = true
-local function toggleMenu()
-	buttonSound:Play()
-	menuVisible = not menuVisible
-
-	if menuVisible then
-		TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Position = UDim2.new(0, 10, 0, 10)
-		}):Play()
-	else
-		TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-			Position = UDim2.new(0, -510, 0, 10)
-		}):Play()
-	end
-end
-
-UIS.InputBegan:Connect(function(input, processed)
-	if not processed and input.KeyCode == Enum.KeyCode.LeftShift then
-		toggleMenu()
-	end
-end)
-
-UIS.InputBegan:Connect(function(input, processed)
-	if not processed and input.KeyCode == Enum.KeyCode.F then
-		if freeCamEnabled then
-			DisableFreeCam()
-		end
-	end
-end)
-
-toggleMenu()
+initialAnimation()
