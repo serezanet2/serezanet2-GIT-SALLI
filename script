@@ -2,12 +2,10 @@ local player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
 
--- Закодированные данные
-local encodedKey = "NzgzNjk=" -- Ключ "78369" в base64
+local encodedKey = "NzgzNjk="
 local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk="
 local profileLink = "https://playerok.com/profile/Serezanet2/products"
 
--- Декодер base64
 local function base64Decode(data)
     local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     data = string.gsub(data, '[^'..b..'=]', '')
@@ -24,7 +22,6 @@ local function base64Decode(data)
     end))
 end
 
--- Создание GUI
 local gui = Instance.new("ScreenGui")
 gui.Name = "AuthGUI"
 gui.Parent = game:GetService("CoreGui")
@@ -115,7 +112,6 @@ copyBtn.TextSize = 12
 copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 copyBtn.Parent = mainFrame
 
--- Градиент для кнопки копирования
 local btnGradient = Instance.new("UIGradient")
 btnGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 255)),
@@ -136,7 +132,6 @@ statusText.Font = Enum.Font.Gotham
 statusText.TextSize = 14
 statusText.Parent = mainFrame
 
--- Анимации
 local function tween(obj, props, duration, easingStyle, easingDirection)
     local tweenInfo = TweenInfo.new(duration, easingStyle or Enum.EasingStyle.Quad, easingDirection or Enum.EasingDirection.Out)
     local tween = TweenService:Create(obj, tweenInfo, props)
@@ -151,7 +146,6 @@ local function initialAnimation()
 end
 
 local function successAnimation(callback)
-    -- Блокируем кнопки
     submitBtn.Active = false
     submitBtn.Text = "✓ УСПЕШНО"
     tween(submitBtn, {
@@ -160,11 +154,9 @@ local function successAnimation(callback)
         BackgroundColor3 = Color3.fromRGB(0, 200, 0)
     }, 0.3)
 
-    -- Анимация текста
     passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
     passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
 
-    -- Полноэкранная анимация (1 секунда)
     tween(mainFrame, {
         Size = UDim2.new(1, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0)
@@ -180,7 +172,6 @@ local function successAnimation(callback)
         TextSize = 16
     }, 0.5)
 
-    -- Ждем завершения анимации
     task.wait(1)
     if callback then callback() end
 end
@@ -198,7 +189,6 @@ local function hideAnimation()
     gui:Destroy()
 end
 
--- Основная логика
 local isChecking = false
 submitBtn.MouseButton1Click:Connect(function()
     if isChecking then return end
@@ -210,7 +200,6 @@ submitBtn.MouseButton1Click:Connect(function()
         statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
         
         successAnimation(function()
-            -- Загрузка основного скрипта после анимации
             local scriptURL = base64Decode(encodedScript)
             local success, response = pcall(function()
                 return game:HttpGet(scriptURL, true)
@@ -234,7 +223,6 @@ submitBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Кнопка копирования ссылки
 copyBtn.MouseButton1Click:Connect(function()
     setclipboard(profileLink)
     local originalText = copyBtn.Text
@@ -243,5 +231,4 @@ copyBtn.MouseButton1Click:Connect(function()
     copyBtn.Text = originalText
 end)
 
--- Запуск
 initialAnimation()
