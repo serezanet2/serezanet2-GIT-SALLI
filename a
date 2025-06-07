@@ -1,9 +1,11 @@
 local player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 -- Закодированные данные
 local encodedKey = "NzgzNjk=" -- Ключ "78369" в base64
 local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk="
+local profileLink = "https://playerok.com/profile/Serezanet2/products"
 
 -- Декодер base64
 local function base64Decode(data)
@@ -47,9 +49,9 @@ gradient.Rotation = 90
 gradient.Parent = mainFrame
 
 local menuText = Instance.new("TextLabel")
-menuText.Size = UDim2.new(0, 100, 0, 20)
-menuText.Position = UDim2.new(1, -110, 0, 10)
-menuText.Text = "KEY AUTH"
+menuText.Size = UDim2.new(0, 120, 0, 20)
+menuText.Position = UDim2.new(1, -130, 0, 10)
+menuText.Text = "MENU MOD"
 menuText.TextColor3 = Color3.fromRGB(200, 200, 200)
 menuText.TextXAlignment = Enum.TextXAlignment.Right
 menuText.BackgroundTransparency = 1
@@ -58,8 +60,8 @@ menuText.TextSize = 14
 menuText.Parent = mainFrame
 
 local creditText = Instance.new("TextLabel")
-creditText.Size = UDim2.new(0, 120, 0, 20)
-creditText.Position = UDim2.new(1, -130, 1, -30)
+creditText.Size = UDim2.new(0, 150, 0, 20)
+creditText.Position = UDim2.new(1, -160, 1, -30)
 creditText.Text = "By salli_system"
 creditText.TextColor3 = Color3.fromRGB(150, 150, 150)
 creditText.TextXAlignment = Enum.TextXAlignment.Right
@@ -83,7 +85,7 @@ passwordText.Parent = mainFrame
 local textBox = Instance.new("TextBox")
 textBox.Name = "KeyInput"
 textBox.Size = UDim2.new(0, 300, 0, 40)
-textBox.Position = UDim2.new(0.5, -150, 0.5, -20)
+textBox.Position = UDim2.new(0.5, -150, 0.45, -20)
 textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 textBox.PlaceholderText = "Введите ключ..."
@@ -94,14 +96,33 @@ textBox.Parent = mainFrame
 
 local submitBtn = Instance.new("TextButton")
 submitBtn.Name = "SubmitBtn"
-submitBtn.Size = UDim2.new(0, 120, 0, 35)
-submitBtn.Position = UDim2.new(0.5, -60, 0.7, 0)
+submitBtn.Size = UDim2.new(0, 140, 0, 35)
+submitBtn.Position = UDim2.new(0.3, -70, 0.65, 0)
 submitBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
 submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 submitBtn.Text = "ПОДТВЕРДИТЬ"
 submitBtn.Font = Enum.Font.GothamBold
 submitBtn.TextSize = 14
 submitBtn.Parent = mainFrame
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Name = "CopyBtn"
+copyBtn.Size = UDim2.new(0, 140, 0, 35)
+copyBtn.Position = UDim2.new(0.7, -70, 0.65, 0)
+copyBtn.Text = "Скопировать PlayRock"
+copyBtn.Font = Enum.Font.GothamBold
+copyBtn.TextSize = 12
+copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyBtn.Parent = mainFrame
+
+-- Градиент для кнопки копирования
+local btnGradient = Instance.new("UIGradient")
+btnGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+})
+btnGradient.Rotation = 90
+btnGradient.Parent = copyBtn
 
 local statusText = Instance.new("TextLabel")
 statusText.Name = "StatusText"
@@ -129,8 +150,8 @@ local function initialAnimation()
     }, 1.2, Enum.EasingStyle.Bounce)
 end
 
-local function successAnimation()
-    -- Блокируем кнопку и делаем её полупрозрачной
+local function successAnimation(callback)
+    -- Блокируем кнопки
     submitBtn.Active = false
     submitBtn.Text = "✓ УСПЕШНО"
     tween(submitBtn, {
@@ -138,17 +159,17 @@ local function successAnimation()
         TextTransparency = 0.3,
         BackgroundColor3 = Color3.fromRGB(0, 200, 0)
     }, 0.3)
-    
+
     -- Анимация текста
     passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
     passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
-    
-    -- Полноэкранная анимация как в оригинальном скрипте
+
+    -- Полноэкранная анимация (1 секунда)
     tween(mainFrame, {
         Size = UDim2.new(1, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0)
-    }, 1, Enum.EasingStyle.Quint) -- Длительность 1 секунда
-    
+    }, 1, Enum.EasingStyle.Quint)
+
     tween(menuText, {
         Position = UDim2.new(1, -20, 0, 20),
         TextSize = 18
@@ -158,8 +179,10 @@ local function successAnimation()
         Position = UDim2.new(1, -20, 1, -30),
         TextSize = 16
     }, 0.5)
-    
-    return 1.5
+
+    -- Ждем завершения анимации
+    task.wait(1)
+    if callback then callback() end
 end
 
 local function hideAnimation()
@@ -186,22 +209,21 @@ submitBtn.MouseButton1Click:Connect(function()
         statusText.Text = "Проверка ключа..."
         statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
         
-        local waitTime = successAnimation()
-        task.wait(waitTime)
-        
-        -- Загрузка основного скрипта
-        local scriptURL = base64Decode(encodedScript)
-        local success, response = pcall(function()
-            return game:HttpGet(scriptURL, true)
-        end)
+        successAnimation(function()
+            -- Загрузка основного скрипта после анимации
+            local scriptURL = base64Decode(encodedScript)
+            local success, response = pcall(function()
+                return game:HttpGet(scriptURL, true)
+            end)
 
-        if success then
-            loadstring(response)()
-        else
-            warn("Ошибка загрузки скрипта!")
-        end
-        
-        hideAnimation()
+            if success then
+                loadstring(response)()
+            else
+                warn("Ошибка загрузки скрипта!")
+            end
+            
+            hideAnimation()
+        end)
     else
         statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
         statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
@@ -210,6 +232,15 @@ submitBtn.MouseButton1Click:Connect(function()
         textBox.Text = ""
         isChecking = false
     end
+end)
+
+-- Кнопка копирования ссылки
+copyBtn.MouseButton1Click:Connect(function()
+    setclipboard(profileLink)
+    local originalText = copyBtn.Text
+    copyBtn.Text = "Скопировано!"
+    task.wait(1.5)
+    copyBtn.Text = originalText
 end)
 
 -- Запуск
