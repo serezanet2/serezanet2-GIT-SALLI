@@ -3,7 +3,7 @@ local TweenService = game:GetService("TweenService")
 local MarketplaceService = game:GetService("MarketplaceService")
 
 local encodedKey = "NzgzNjk="
-local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk="
+local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvbWFpbi9zY3JpcHQ="
 local profileLink = "https://playerok.com/profile/Serezanet2/products"
 
 local function base64Decode(data)
