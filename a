@@ -130,13 +130,24 @@ local function initialAnimation()
 end
 
 local function successAnimation()
+    -- Блокируем кнопку и делаем её полупрозрачной
+    submitBtn.Active = false
+    submitBtn.Text = "✓ УСПЕШНО"
+    tween(submitBtn, {
+        BackgroundTransparency = 0.7,
+        TextTransparency = 0.3,
+        BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+    }, 0.3)
+    
+    -- Анимация текста
     passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
     passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
     
+    -- Полноэкранная анимация как в оригинальном скрипте
     tween(mainFrame, {
         Size = UDim2.new(1, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0)
-    }, 0.8, Enum.EasingStyle.Quint)
+    }, 1, Enum.EasingStyle.Quint) -- Длительность 1 секунда
     
     tween(menuText, {
         Position = UDim2.new(1, -20, 0, 20),
@@ -165,11 +176,15 @@ local function hideAnimation()
 end
 
 -- Основная логика
+local isChecking = false
 submitBtn.MouseButton1Click:Connect(function()
+    if isChecking then return end
+    isChecking = true
+    
     local correctKey = base64Decode(encodedKey)
     if textBox.Text == correctKey then
         statusText.Text = "Проверка ключа..."
-        task.wait(0.5)
+        statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
         
         local waitTime = successAnimation()
         task.wait(waitTime)
@@ -190,9 +205,10 @@ submitBtn.MouseButton1Click:Connect(function()
     else
         statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
         statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
-        task.wait(1)
+        task.wait(1.5)
         statusText.Text = ""
         textBox.Text = ""
+        isChecking = false
     end
 end)
 
