@@ -1,5 +1,6 @@
--- Закодированная ссылка на твой скрипт (base64)
-local encodedURL = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL01lbnUtTU9E"
+-- Закодированное меню для проверки ключа
+local encodedKey = "NzgzNjk=" -- Закодированный ключ "78369" в base64
+local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk=" -- Закодированная ссылка на основной скрипт
 
 -- Декодер base64
 local function base64Decode(data)
@@ -18,14 +19,79 @@ local function base64Decode(data)
     end))
 end
 
--- Декодируем URL и загружаем скрипт
-local scriptURL = base64Decode(encodedURL)
-local success, response = pcall(function()
-    return game:HttpGet(scriptURL, true)
-end)
+-- Создаем интерфейс для ввода ключа
+local function createKeyUI()
+    local screenGui = Instance.new("ScreenGui")
+    local frame = Instance.new("Frame")
+    local textBox = Instance.new("TextBox")
+    local submit = Instance.new("TextButton")
+    local message = Instance.new("TextLabel")
 
-if success then
-    loadstring(response)()
-else
-    warn("Ошибка загрузки скрипта! Проверь ссылку или интернет.")
+    screenGui.Name = "KeyAuth"
+    screenGui.Parent = game.CoreGui
+
+    frame.Name = "MainFrame"
+    frame.Parent = screenGui
+    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    frame.BorderSizePixel = 0
+    frame.Position = UDim2.new(0.35, 0, 0.35, 0)
+    frame.Size = UDim2.new(0.3, 0, 0.3, 0)
+
+    textBox.Name = "KeyInput"
+    textBox.Parent = frame
+    textBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    textBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+    textBox.Size = UDim2.new(0.8, 0, 0.2, 0)
+    textBox.Font = Enum.Font.SourceSans
+    textBox.PlaceholderText = "Введите ключ доступа"
+    textBox.Text = ""
+    textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.TextSize = 18
+
+    submit.Name = "SubmitBtn"
+    submit.Parent = frame
+    submit.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
+    submit.Position = UDim2.new(0.3, 0, 0.6, 0)
+    submit.Size = UDim2.new(0.4, 0, 0.2, 0)
+    submit.Font = Enum.Font.SourceSans
+    submit.Text = "Проверить"
+    submit.TextColor3 = Color3.fromRGB(255, 255, 255)
+    submit.TextSize = 18
+
+    message.Name = "StatusMessage"
+    message.Parent = frame
+    message.BackgroundTransparency = 1
+    message.Position = UDim2.new(0.1, 0, 0.1, 0)
+    message.Size = UDim2.new(0.8, 0, 0.15, 0)
+    message.Font = Enum.Font.SourceSans
+    message.Text = "Введите ключ для доступа"
+    message.TextColor3 = Color3.fromRGB(255, 255, 255)
+    message.TextSize = 18
+
+    submit.MouseButton1Click:Connect(function()
+        local correctKey = base64Decode(encodedKey)
+        if textBox.Text == correctKey then
+            message.Text = "Ключ верный! Загружаю скрипт..."
+            wait(1)
+            screenGui:Destroy()
+            
+            -- Загружаем основной скрипт
+            local scriptURL = base64Decode(encodedScript)
+            local success, response = pcall(function()
+                return game:HttpGet(scriptURL, true)
+            end)
+
+            if success then
+                loadstring(response)()
+            else
+                warn("Ошибка загрузки скрипта! Проверь интернет соединение.")
+            end
+        else
+            message.Text = "Неверный ключ! Попробуйте снова."
+            textBox.Text = ""
+        end
+    end)
 end
+
+-- Запускаем интерфейс
+createKeyUI()
