@@ -1,34 +1,31 @@
-local encodedScript = "bG9hZHN0cmluZyhnYW1lOkdldEh0dHAoJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9zZXJlemFuZXQyL3NlcmV6YW5ldDItR0lULVNBTExJL3JlZnMvaGVhZHMvbWFpbi9NZW51LU1PRCcpKSgp"
+-- Закодированная ссылка на твой скрипт (base64)
+local encodedURL = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL01lbnUtTU9E"
 
--- Улучшенный декодер Base64 (работает даже с лишними символами)
+-- Декодер base64
 local function base64Decode(data)
     local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     data = string.gsub(data, '[^'..b..'=]', '')
     return (data:gsub('.', function(x)
-        if (x == '=') then return '' end
-        local r,f='',(b:find(x)-1)
-        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-        return r;
+        if x == '=' then return '' end
+        local r, f = '', (b:find(x) - 1)
+        for i = 6, 1, -1 do r = r .. (f % 2^i - f % 2^(i-1) > 0 and '1' or '0') end
+        return r
     end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-        if (#x ~= 8) then return '' end
-        local c=0
-        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        if #x ~= 8 then return '' end
+        local c = 0
+        for i = 1, 8 do c = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0) end
         return string.char(c)
     end))
 end
 
--- Проверяем, есть ли доступ к GitHub
-local function checkGitHub()
-    local success, err = pcall(function()
-        return game:HttpGet("https://raw.githubusercontent.com/")
-    end)
-    return success
-end
+-- Декодируем URL и загружаем скрипт
+local scriptURL = base64Decode(encodedURL)
+local success, response = pcall(function()
+    return game:HttpGet(scriptURL, true)
+end)
 
--- Запускаем скрипт
-if checkGitHub() then
-    local decoded = base64Decode(encodedScript)
-    loadstring(decoded)()
+if success then
+    loadstring(response)()
 else
-    warn("GitHub заблокирован! Используйте зеркало или другой хостинг.")
+    warn("Ошибка загрузки скрипта! Проверь ссылку или интернет.")
 end
