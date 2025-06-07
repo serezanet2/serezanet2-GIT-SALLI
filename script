@@ -146,7 +146,7 @@ local function successAnimation()
         Size = UDim2.new(1, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0),
         BackgroundTransparency = 1
-    }, 0.1, Enum.EasingStyle.Linear).Completed:Wait()
+    }, 1, Enum.EasingStyle.Linear).Completed:Wait()
     
     -- Уничтожаем GUI
     gui:Destroy()
