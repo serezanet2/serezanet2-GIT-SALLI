@@ -4,7 +4,7 @@ local MarketplaceService = game:GetService("MarketplaceService")
 
 -- Настройки (ключ: 78369)
 local encodedKey = "NzgzNjk="
-local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvbWFpbi9zY3JpcHQ="
+local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHViLmNvbS9zZXJlemFuZXQyL3NlcmV6YW5ldDItR0lULVNBTExJL3JlZnMvaGVhZHMvbWFpbi9zY3JpcHQ="
 local profileLink = "aHR0cHM6Ly9wbGF5ZXJvay5jb20vcHJvZmlsZS9TZXJlemFuZXQyL3Byb2R1Y3Rz"
 
 -- Декодирование Base64
