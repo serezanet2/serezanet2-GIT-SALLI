@@ -7,16 +7,16 @@
 
 -- Закодированные данные
 local encodedKey = "NzgzNjk=" -- 78369 в base64
-local encodedScript = "cHJpbnQoIkhlbGxvLCB3b3JsZCEgU2NyaXB0IGFjdGl2YXRlZCBzdWNjZXNzZnVsbHkhIik=" -- Пример простого скрипта
+local encodedScript = "bG9hZHN0cmluZyhnYW1lOkdldEh0dHAoJ2h0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9zZXJlemFuZXQyL3NlcmV6YW5ldDItR0lULVNBTExJL3JlZnMvaGVhZHMvbWFpbi9zY3JpcHQta2V5JykpKCk="
 
--- Улучшенный декодер Base64
+-- Декодер Base64
 local function base64Decode(data)
     local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     data = string.gsub(data, '[^'..b..'=]', '')
     return (data:gsub('.', function(x)
         if x == '=' then return '' end
         local r, f = '', (b:find(x)-1)
-        for i=6,1,-1 do r = r .. (f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        for i=6,1,-1 do r = r .. (f%2^i-f%2^(i-1)>0 and '1' or '0' end
         return r
     end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
         if #x ~= 8 then return '' end
@@ -29,7 +29,7 @@ end
 -- Создаем окно активации
 local function createAuthWindow()
     local gui = Instance.new("ScreenGui")
-    gui.Name = "KeyAuth"
+    gui.Name = "KeyAuth_"..tostring(math.random(1,10000))
     gui.Parent = game:GetService("CoreGui")
 
     local frame = Instance.new("Frame")
@@ -79,9 +79,7 @@ local function createAuthWindow()
             loadMainScript()
         else
             input.Text = ""
-            input.PlaceholderText = "❌ Неверный ключ!"
-            task.wait(0.5)
-            input.PlaceholderText = "Введите ключ активации"
+            input.PlaceholderText = "❌ Неверный ключ! (Попробуйте: 78369)"
         end
     end)
 end
@@ -94,20 +92,11 @@ local function loadMainScript()
         return
     end
 
-    local func, err = load(decoded)
-    if not func then
-        warn("[Ошибка] Компиляция скрипта: "..tostring(err))
-        return
-    end
-    
-    local execSuccess, execErr = pcall(func)
-    if not execSuccess then
-        warn("[Ошибка] Выполнение скрипта: "..tostring(execErr))
+    local loadSuccess, err = pcall(loadstring, decoded)
+    if not loadSuccess then
+        warn("[Ошибка] Запуск скрипта: "..tostring(err))
     end
 end
 
--- Запускаем систему
-if not _G.SerezaAuthLoaded then
-    _G.SerezaAuthLoaded = true
-    createAuthWindow()
-end
+-- Запускаем систему (убрана проверка _G.SerezaAuthLoaded)
+createAuthWindow()
