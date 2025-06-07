@@ -1,6 +1,9 @@
--- Закодированное меню для проверки ключа
-local encodedKey = "NzgzNjk=" -- Закодированный ключ "78369" в base64
-local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk=" -- Закодированная ссылка на основной скрипт
+local player = game:GetService("Players").LocalPlayer
+local TweenService = game:GetService("TweenService")
+
+-- Закодированные данные
+local encodedKey = "NzgzNjk=" -- Ключ "78369" в base64
+local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvcmVmcy9oZWFkcy9tYWluL3NjcmlwdC1rZXk="
 
 -- Декодер base64
 local function base64Decode(data)
@@ -19,79 +22,169 @@ local function base64Decode(data)
     end))
 end
 
--- Создаем интерфейс для ввода ключа
-local function createKeyUI()
-    local screenGui = Instance.new("ScreenGui")
-    local frame = Instance.new("Frame")
-    local textBox = Instance.new("TextBox")
-    local submit = Instance.new("TextButton")
-    local message = Instance.new("TextLabel")
+-- Создание GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AuthGUI"
+gui.Parent = game:GetService("CoreGui")
+gui.DisplayOrder = 999999999
+gui.IgnoreGuiInset = true
+gui.ResetOnSpawn = false
 
-    screenGui.Name = "KeyAuth"
-    screenGui.Parent = game.CoreGui
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 500, 0, 300)
+mainFrame.Position = UDim2.new(0.5, -250, 0, -350)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
+mainFrame.Parent = gui
 
-    frame.Name = "MainFrame"
-    frame.Parent = screenGui
-    frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    frame.BorderSizePixel = 0
-    frame.Position = UDim2.new(0.35, 0, 0.35, 0)
-    frame.Size = UDim2.new(0.3, 0, 0.3, 0)
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+})
+gradient.Rotation = 90
+gradient.Parent = mainFrame
 
-    textBox.Name = "KeyInput"
-    textBox.Parent = frame
-    textBox.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    textBox.Position = UDim2.new(0.1, 0, 0.3, 0)
-    textBox.Size = UDim2.new(0.8, 0, 0.2, 0)
-    textBox.Font = Enum.Font.SourceSans
-    textBox.PlaceholderText = "Введите ключ доступа"
-    textBox.Text = ""
-    textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textBox.TextSize = 18
+local menuText = Instance.new("TextLabel")
+menuText.Size = UDim2.new(0, 100, 0, 20)
+menuText.Position = UDim2.new(1, -110, 0, 10)
+menuText.Text = "KEY AUTH"
+menuText.TextColor3 = Color3.fromRGB(200, 200, 200)
+menuText.TextXAlignment = Enum.TextXAlignment.Right
+menuText.BackgroundTransparency = 1
+menuText.Font = Enum.Font.GothamBold
+menuText.TextSize = 14
+menuText.Parent = mainFrame
 
-    submit.Name = "SubmitBtn"
-    submit.Parent = frame
-    submit.BackgroundColor3 = Color3.fromRGB(30, 136, 229)
-    submit.Position = UDim2.new(0.3, 0, 0.6, 0)
-    submit.Size = UDim2.new(0.4, 0, 0.2, 0)
-    submit.Font = Enum.Font.SourceSans
-    submit.Text = "Проверить"
-    submit.TextColor3 = Color3.fromRGB(255, 255, 255)
-    submit.TextSize = 18
+local creditText = Instance.new("TextLabel")
+creditText.Size = UDim2.new(0, 120, 0, 20)
+creditText.Position = UDim2.new(1, -130, 1, -30)
+creditText.Text = "By salli_system"
+creditText.TextColor3 = Color3.fromRGB(150, 150, 150)
+creditText.TextXAlignment = Enum.TextXAlignment.Right
+creditText.BackgroundTransparency = 1
+creditText.Font = Enum.Font.Gotham
+creditText.TextSize = 12
+creditText.Parent = mainFrame
 
-    message.Name = "StatusMessage"
-    message.Parent = frame
-    message.BackgroundTransparency = 1
-    message.Position = UDim2.new(0.1, 0, 0.1, 0)
-    message.Size = UDim2.new(0.8, 0, 0.15, 0)
-    message.Font = Enum.Font.SourceSans
-    message.Text = "Введите ключ для доступа"
-    message.TextColor3 = Color3.fromRGB(255, 255, 255)
-    message.TextSize = 18
+local passwordText = Instance.new("TextLabel")
+passwordText.Name = "PasswordText"
+passwordText.Size = UDim2.new(1, -40, 0, 50)
+passwordText.Position = UDim2.new(0, 20, 0.3, -25)
+passwordText.Text = "ВВЕДИТЕ КЛЮЧ ДОСТУПА"
+passwordText.TextColor3 = Color3.fromRGB(255, 255, 255)
+passwordText.TextXAlignment = Enum.TextXAlignment.Center
+passwordText.BackgroundTransparency = 1
+passwordText.Font = Enum.Font.GothamBold
+passwordText.TextSize = 18
+passwordText.Parent = mainFrame
 
-    submit.MouseButton1Click:Connect(function()
-        local correctKey = base64Decode(encodedKey)
-        if textBox.Text == correctKey then
-            message.Text = "Ключ верный! Загружаю скрипт..."
-            wait(1)
-            screenGui:Destroy()
-            
-            -- Загружаем основной скрипт
-            local scriptURL = base64Decode(encodedScript)
-            local success, response = pcall(function()
-                return game:HttpGet(scriptURL, true)
-            end)
+local textBox = Instance.new("TextBox")
+textBox.Name = "KeyInput"
+textBox.Size = UDim2.new(0, 300, 0, 40)
+textBox.Position = UDim2.new(0.5, -150, 0.5, -20)
+textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.PlaceholderText = "Введите ключ..."
+textBox.Font = Enum.Font.Gotham
+textBox.TextSize = 16
+textBox.Text = ""
+textBox.Parent = mainFrame
 
-            if success then
-                loadstring(response)()
-            else
-                warn("Ошибка загрузки скрипта! Проверь интернет соединение.")
-            end
-        else
-            message.Text = "Неверный ключ! Попробуйте снова."
-            textBox.Text = ""
-        end
-    end)
+local submitBtn = Instance.new("TextButton")
+submitBtn.Name = "SubmitBtn"
+submitBtn.Size = UDim2.new(0, 120, 0, 35)
+submitBtn.Position = UDim2.new(0.5, -60, 0.7, 0)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.Text = "ПОДТВЕРДИТЬ"
+submitBtn.Font = Enum.Font.GothamBold
+submitBtn.TextSize = 14
+submitBtn.Parent = mainFrame
+
+local statusText = Instance.new("TextLabel")
+statusText.Name = "StatusText"
+statusText.Size = UDim2.new(1, -40, 0, 30)
+statusText.Position = UDim2.new(0, 20, 0.85, 0)
+statusText.Text = ""
+statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusText.TextXAlignment = Enum.TextXAlignment.Center
+statusText.BackgroundTransparency = 1
+statusText.Font = Enum.Font.Gotham
+statusText.TextSize = 14
+statusText.Parent = mainFrame
+
+-- Анимации
+local function tween(obj, props, duration, easingStyle, easingDirection)
+    local tweenInfo = TweenInfo.new(duration, easingStyle or Enum.EasingStyle.Quad, easingDirection or Enum.EasingDirection.Out)
+    local tween = TweenService:Create(obj, tweenInfo, props)
+    tween:Play()
+    return tween
 end
 
--- Запускаем интерфейс
-createKeyUI()
+local function initialAnimation()
+    tween(mainFrame, {
+        Position = UDim2.new(0.5, -250, 0.5, -150)
+    }, 1.2, Enum.EasingStyle.Bounce)
+end
+
+local function successAnimation()
+    -- Блокируем кнопку
+    submitBtn.Active = false
+    submitBtn.Text = "✓ УСПЕШНО"
+    submitBtn.BackgroundTransparency = 0.7
+    submitBtn.TextTransparency = 0.3
+    submitBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+
+    -- Анимация текста
+    passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
+    passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
+
+    -- Быстрая анимация на весь экран (0.1 сек)
+    tween(mainFrame, {
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1
+    }, 0.1, Enum.EasingStyle.Linear).Completed:Wait()
+    
+    -- Уничтожаем GUI
+    gui:Destroy()
+    
+    -- Загружаем основной скрипт
+    local scriptURL = base64Decode(encodedScript)
+    local success, response = pcall(function()
+        return game:HttpGet(scriptURL, true)
+    end)
+
+    if success then
+        loadstring(response)()
+    else
+        warn("Ошибка загрузки скрипта!")
+    end
+end
+
+-- Основная логика
+local isChecking = false
+submitBtn.MouseButton1Click:Connect(function()
+    if isChecking then return end
+    isChecking = true
+    
+    local correctKey = base64Decode(encodedKey)
+    if textBox.Text == correctKey then
+        statusText.Text = "Проверка ключа..."
+        statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        
+        successAnimation()
+    else
+        statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
+        statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
+        task.wait(1.5)
+        statusText.Text = ""
+        textBox.Text = ""
+        isChecking = false
+    end
+end)
+
+-- Запуск
+initialAnimation()
