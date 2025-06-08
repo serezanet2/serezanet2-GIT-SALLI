@@ -287,11 +287,11 @@ local godmodeButton = createButton(tabContainers[7], "GodmodeButton", "Godmode",
 local invisibleButton = createButton(tabContainers[7], "InvisibleButton", "Invisible Hack", UDim2.new(0, 10, 0, 45))
 local clickDeleteButton = createButton(tabContainers[7], "ClickDeleteButton", "Click Delete", UDim2.new(0, 10, 0, 90))
 local itemStealerButton = createButton(tabContainers[7], "ItemStealerButton", "Item Stealer", UDim2.new(0, 10, 0, 135))
-local luaExecutorButton = createButton(tabContainers[7], "LuaExecutorButton", "Lua Executor", UDim2.new(0, 10, 0, 180))
 
 local buildBoatButton = createButton(tabContainers[8], "BuildBoatButton", "Build a Boat", UDim2.new(0, 10, 0, 0))
 local deadRailsButton = createButton(tabContainers[8], "DeadRailsButton", "Dead Rails", UDim2.new(0, 10, 0, 45))
 local infiniteYieldButton = createButton(tabContainers[8], "InfiniteYieldButton", "Infinite Yield", UDim2.new(0, 10, 0, 90))
+local luaExecutorButton = createButton(tabContainers[8], "LuaExecutorButton", "Lua Executor", UDim2.new(0, 10, 0, 135))
 
 local noclipIndicator = addIndicator(noclipButton)
 local flyIndicator = addIndicator(flyButton)
