@@ -1317,12 +1317,12 @@ end
 
 infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
 
-local function gitload()
-	buttonSound:Play()
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/GIT-SALLI-%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%B1%D0%BE%D0%BB%D1%82.lua'))()
+local function loadGunScript()
+    buttonSound:Play()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/GIT-SALLI-%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%B1%D0%BE%D0%BB%D1%82.lua'))()
 end
 
-gitloadButton.MouseButton1Click:Connect(gitload)
+gitloadButton.MouseButton1Click:Connect(loadGunScript)
 
 local function toggleTheme()
 	buttonSound:Play()
