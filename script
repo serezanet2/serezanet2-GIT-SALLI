@@ -1470,96 +1470,85 @@ toggleMenu()
 
 -- Добавьте этот код в конец вашего скрипта
 
--- Функция для определения режима камеры (от первого лица)
-local function isFirstPerson()
-    local camera = workspace.CurrentCamera
-    if not camera then return false end
-    
-    local character = player.Character
-    if not character then return false end
-    
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if not humanoid then return false end
-    
-    return humanoid.CameraMode == Enum.CameraMode.LockFirstPerson
-end
+-- Переменные для управления состоянием мыши
+local antiLockEnabled = false
+local originalMouseBehavior = Enum.MouseBehavior.Default
 
--- Переменная для хранения оригинального курсора
-local originalMouseIconEnabled = UIS.MouseIconEnabled
-
--- Функция для обновления состояния курсора и блокировки мыши
-local function updateMouseState()
-    if menuVisible then
-        -- Когда меню открыто - разблокировать мышь и показать кастомный курсор
+-- Функция для включения/выключения антиблокировки мыши
+local function setAntiLock(state)
+    antiLockEnabled = state
+    if state then
+        -- Включаем антиблокировку - разблокируем мышь
         UIS.MouseBehavior = Enum.MouseBehavior.Default
-        cursorGui.Enabled = true
-        UIS.MouseIconEnabled = false -- Скрываем системный курсор
     else
-        -- Когда меню закрыто - поведение зависит от режима камеры
-        if isFirstPerson() then
-            -- В режиме от первого лица - блокируем мышь
-            UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
-            cursorGui.Enabled = false -- Скрываем кастомный курсор
-            UIS.MouseIconEnabled = false -- Скрываем системный курсор
-        else
-            -- В режиме от третьего лица - стандартное поведение
-            UIS.MouseBehavior = Enum.MouseBehavior.Default
-            cursorGui.Enabled = true -- Показываем кастомный курсор
-            UIS.MouseIconEnabled = false -- Скрываем системный курсор
-        end
+        -- Выключаем антиблокировку - возвращаем стандартное поведение игры
+        UIS.MouseBehavior = originalMouseBehavior
     end
 end
 
--- Обновляем состояние при изменении видимости меню
+-- Функция для обновления состояния курсора
+local function updateCursorState()
+    if menuVisible then
+        -- Когда меню открыто:
+        cursorGui.Enabled = true  -- Показываем кастомный курсор
+        setAntiLock(true)         -- Включаем антиблокировку мыши
+    else
+        -- Когда меню закрыто:
+        cursorGui.Enabled = false -- Скрываем кастомный курсор
+        setAntiLock(false)        -- Выключаем антиблокировку, возвращаем стандартное поведение
+    end
+end
+
+-- Отслеживаем изменение видимости меню
 local originalToggleMenu = toggleMenu
 function toggleMenu()
     originalToggleMenu()
-    updateMouseState()
+    updateCursorState()
 end
 
--- Обработка изменения режима камеры
-local cameraModeConnection
-cameraModeConnection = player.CharacterAdded:Connect(function(character)
+-- Отслеживаем изменение режима камеры (для первого/третьего лица)
+local function onCharacterAdded(character)
     local humanoid = character:WaitForChildOfClass("Humanoid")
-    humanoid:GetPropertyChangedSignal("CameraMode"):Connect(updateMouseState)
-end)
-
-if player.Character then
-    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid:GetPropertyChangedSignal("CameraMode"):Connect(updateMouseState)
-    end
+    
+    humanoid:GetPropertyChangedSignal("CameraMode"):Connect(function()
+        if not antiLockEnabled then
+            -- Обновляем оригинальное поведение мыши, если антиблокировка не активна
+            if humanoid.CameraMode == Enum.CameraMode.LockFirstPerson then
+                originalMouseBehavior = Enum.MouseBehavior.LockCenter
+            else
+                originalMouseBehavior = Enum.MouseBehavior.Default
+            end
+            UIS.MouseBehavior = originalMouseBehavior
+        end
+    end)
 end
 
--- Обработка свободной камеры
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Обработка FreeCam
 local originalToggleFreeCam = ToggleFreeCam
 function ToggleFreeCam()
     originalToggleFreeCam()
     if freeCamEnabled then
-        -- В режиме свободной камеры курсор должен быть виден и разблокирован
+        setAntiLock(true) -- В FreeCam всегда разблокируем мышь
         cursorGui.Enabled = true
-        UIS.MouseBehavior = Enum.MouseBehavior.Default
-        UIS.MouseIconEnabled = false
     else
-        -- Возвращаемся к обычному состоянию
-        updateMouseState()
+        updateCursorState() -- Возвращаем стандартное состояние
     end
 end
 
--- Обработка закрытия скрипта
+-- При отключении скрипта
 local originalDisableScript = disableScript
 function disableScript()
-    -- Восстанавливаем оригинальные настройки курсора
-    UIS.MouseBehavior = Enum.MouseBehavior.Default
-    UIS.MouseIconEnabled = originalMouseIconEnabled
-    
-    -- Отключаем все соединения
-    if cameraModeConnection then
-        cameraModeConnection:Disconnect()
-    end
-    
+    -- Возвращаем все в исходное состояние
+    setAntiLock(false)
+    UIS.MouseIconEnabled = true
     originalDisableScript()
 end
 
--- Инициализация начального состояния
-updateMouseState()
+-- Инициализация
+UIS.MouseIconEnabled = false -- Всегда скрываем системный курсор
+updateCursorState() -- Устанавливаем начальное состояние
