@@ -1,1 +1,46 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "CustomGUI"
+gui.Parent = player:WaitForChild("PlayerGui")
 
+-- Создаем фрейм (прямоугольник)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.fromRGB(255, 255, 255)
+frame.Parent = gui
+
+-- Добавляем текст
+local label = Instance.new("TextLabel")
+label.Size = UDim2.new(0.8, 0, 0.5, 0)
+label.Position = UDim2.new(0.1, 0, 0.2, 0)
+label.Text = "Работает (:"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.BackgroundTransparency = 1
+label.TextScaled = true
+label.Font = Enum.Font.SourceSansBold
+label.Parent = frame
+
+-- Добавляем кнопку закрытия
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+closeButton.BorderSizePixel = 0
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextScaled = true
+closeButton.Parent = frame
+
+-- Функция для закрытия GUI
+local function closeGUI()
+    gui:Destroy()
+end
+
+-- Подключаем функцию к кнопке
+closeButton.MouseButton1Click:Connect(closeGUI)
