@@ -1467,3 +1467,54 @@ UIS.InputBegan:Connect(function(input, processed)
 end)
 
 toggleMenu()
+
+-- Добавьте этот код в конец вашего скриптаааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааааа
+
+-- Переменная для хранения состояния блокировки мыши
+local mouseLocked = false
+
+-- Функция для обновления состояния мыши
+local function updateMouseState()
+    if menuVisible then
+        -- Когда меню открыто - разблокировать мышь
+        UIS.MouseBehavior = Enum.MouseBehavior.Default
+        cursorGui.Enabled = true
+    else
+        -- Когда меню закрыто - заблокировать мышь (для шутеров от первого лица)
+        UIS.MouseBehavior = Enum.MouseBehavior.LockCenter
+        cursorGui.Enabled = false
+    end
+end
+
+-- Обновляем состояние при изменении видимости меню
+local originalToggleMenu = toggleMenu
+function toggleMenu()
+    originalToggleMenu()
+    updateMouseState()
+end
+
+-- Также обновляем состояние при первом запуске
+updateMouseState()
+
+-- Обработка изменения состояния свободной камеры
+local originalToggleFreeCam = ToggleFreeCam
+function ToggleFreeCam()
+    originalToggleFreeCam()
+    if freeCamEnabled then
+        -- В режиме свободной камеры курсор должен быть виден и разблокирован
+        cursorGui.Enabled = true
+        UIS.MouseBehavior = Enum.MouseBehavior.Default
+    else
+        -- Возвращаемся к обычному состоянию
+        updateMouseState()
+    end
+end
+
+-- Обработка закрытия меню через кнопку отключения
+local originalDisableScript = disableScript
+function disableScript()
+    -- Перед отключением возвращаем нормальное состояние мыши
+    UIS.MouseBehavior = Enum.MouseBehavior.Default
+    UIS.MouseIconEnabled = true
+    originalDisableScript()
+end
