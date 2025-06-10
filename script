@@ -1477,38 +1477,62 @@ end)
 
 toggleMenu() -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------а
 
+-- Оптимизация Fly и FreeCam
+local function cleanupFly()
+    if flyVelocity then flyVelocity:Destroy() flyVelocity = nil end
+    if flyGyro then flyGyro:Destroy() flyGyro = nil end
+    if flyConnection then flyConnection:Disconnect() flyConnection = nil end
+    local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then humanoid.PlatformStand = false end
+end
 
--- Добавляем мобильную кнопку переключения меню
+local function cleanupFreeCam()
+    if freeCamEnabled then
+        DisableFreeCam()
+    end
+end
+
+-- Улучшенная мобильная кнопка
 local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
 
 if isMobile then
     local mobileToggleButton = Instance.new("TextButton")
     mobileToggleButton.Name = "MobileToggleButton"
-    mobileToggleButton.Size = UDim2.new(0, 80, 0, 40)
-    mobileToggleButton.Position = UDim2.new(0.5, -40, 0, 10)
-    mobileToggleButton.AnchorPoint = Vector2.new(0.5, 0)
-    mobileToggleButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
-    mobileToggleButton.BackgroundTransparency = 0.5
+    mobileToggleButton.Size = UDim2.new(0, 120, 0, 50) -- Шире и выше
+    mobileToggleButton.Position = UDim2.new(1, -130, 0, 20) -- Правая часть экрана с отступом
+    mobileToggleButton.AnchorPoint = Vector2.new(0, 0)
+    mobileToggleButton.BackgroundColor3 = Color3.fromRGB(0, 120, 215) -- Синий цвет как в вашем стиле
+    mobileToggleButton.BackgroundTransparency = 0.3 -- Полупрозрачность
     mobileToggleButton.TextColor3 = Color3.new(1, 1, 1)
     mobileToggleButton.Text = "OPEN"
     mobileToggleButton.Font = Enum.Font.SourceSansBold
-    mobileToggleButton.TextSize = 18
+    mobileToggleButton.TextSize = 20
     mobileToggleButton.ZIndex = 999999
     mobileToggleButton.Parent = ScreenGui
     
-    -- Закругленные углы
+    -- Закругленные углы (больше)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0.2, 0)
+    corner.CornerRadius = UDim.new(0.3, 0)
     corner.Parent = mobileToggleButton
+    
+    -- Тень для кнопки
+    local shadow = Instance.new("UIStroke")
+    shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    shadow.Color = Color3.new(0, 0, 0)
+    shadow.Transparency = 0.7
+    shadow.Thickness = 2
+    shadow.Parent = mobileToggleButton
     
     -- Анимация при нажатии
     local function animateButton()
-        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundTransparency = 0.7
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 115, 0, 48),
+            BackgroundTransparency = 0.4
         }):Play()
         wait(0.1)
-        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            BackgroundTransparency = 0.5
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1), {
+            Size = UDim2.new(0, 120, 0, 50),
+            BackgroundTransparency = 0.3
         }):Play()
     end
     
@@ -1519,13 +1543,13 @@ if isMobile then
         menuVisible = not menuVisible
         
         if menuVisible then
-            mobileToggleButton.Text = "EXIT"
-            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            mobileToggleButton.Text = "CLOSE"
+            TweenService:Create(mainMenu, TweenInfo.new(0.3), {
                 Position = UDim2.new(0, 10, 0, 10)
             }):Play()
         else
             mobileToggleButton.Text = "OPEN"
-            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TweenService:Create(mainMenu, TweenInfo.new(0.3), {
                 Position = UDim2.new(0, -510, 0, 10)
             }):Play()
         end
@@ -1537,4 +1561,17 @@ if isMobile then
     menuVisible = false
     mainMenu.Position = UDim2.new(0, -510, 0, 10)
     mobileToggleButton.Text = "OPEN"
+    
+    -- Автоматическая очистка при выходе
+    player.CharacterRemoving:Connect(function()
+        cleanupFly()
+        cleanupFreeCam()
+    end)
+    
+    game:GetService("CoreGui").ChildRemoved:Connect(function(child)
+        if child == ScreenGui then
+            cleanupFly()
+            cleanupFreeCam()
+        end
+    end)
 end
