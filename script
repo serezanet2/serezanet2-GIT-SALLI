@@ -1477,16 +1477,17 @@ end)
 
 toggleMenu() -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------а
 
--- Мобильная кнопка (упрощенная версия)
+-- Мобильная кнопка и исправления
 local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
 
 if isMobile then
+    -- Создаем квадратную серую кнопку точно по центру вверху
     local mobileToggleButton = Instance.new("TextButton")
     mobileToggleButton.Name = "MobileToggleButton"
-    mobileToggleButton.Size = UDim2.new(0, 60, 0, 60) -- Квадратная кнопка
-    mobileToggleButton.Position = UDim2.new(0.5, -30, 0, 10) -- Верхний центр экрана
+    mobileToggleButton.Size = UDim2.new(0, 60, 0, 60)
+    mobileToggleButton.Position = UDim2.new(0.5, -30, 0, 0) -- Точный центр вверху
     mobileToggleButton.AnchorPoint = Vector2.new(0.5, 0)
-    mobileToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100) -- Серый цвет
+    mobileToggleButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
     mobileToggleButton.BackgroundTransparency = 0.3
     mobileToggleButton.TextColor3 = Color3.new(1, 1, 1)
     mobileToggleButton.Text = "≡"
@@ -1494,12 +1495,12 @@ if isMobile then
     mobileToggleButton.TextSize = 30
     mobileToggleButton.ZIndex = 999999
     mobileToggleButton.Parent = ScreenGui
-    
+
     -- Закругленные углы
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0.2, 0)
     corner.Parent = mobileToggleButton
-    
+
     -- Функция переключения меню
     local function toggleMobileMenu()
         buttonSound:Play()
@@ -1507,38 +1508,227 @@ if isMobile then
         
         if menuVisible then
             mobileToggleButton.Text = "×"
-            TweenService:Create(mainMenu, TweenInfo.new(0.3), {
-                Position = UDim2.new(0, 10, 0, 10)
-            }):Play()
+            mainMenu.Position = UDim2.new(0, 10, 0, 10)
         else
             mobileToggleButton.Text = "≡"
-            TweenService:Create(mainMenu, TweenInfo.new(0.3), {
-                Position = UDim2.new(0, -510, 0, 10)
-            }):Play()
+            mainMenu.Position = UDim2.new(0, -510, 0, 10)
         end
     end
-    
+
     mobileToggleButton.MouseButton1Click:Connect(toggleMobileMenu)
-    
-    -- Скрываем меню при старте на мобильном устройстве
+
+    -- Скрываем меню при старте
     menuVisible = false
     mainMenu.Position = UDim2.new(0, -510, 0, 10)
     mobileToggleButton.Text = "≡"
-    
-    -- Добавляем скролл для мобильных устройств
-    local scrollFrame = Instance.new("ScrollingFrame")
-    scrollFrame.Name = "MobileScrollFrame"
-    scrollFrame.Size = UDim2.new(1, -20, 1, -130)
-    scrollFrame.Position = UDim2.new(0, 10, 0, 110)
-    scrollFrame.BackgroundTransparency = 1
-    scrollFrame.ScrollBarThickness = 6
-    scrollFrame.ScrollBarImageColor3 = themeColors.dark.accent
-    scrollFrame.CanvasSize = UDim2.new(0, 0, 2, 0)
-    scrollFrame.Parent = mainMenu
-    
-    -- Переносим контейнеры в скролл-фрейм
+
+    -- Создаем отдельный скролл-фрейм для каждой вкладки
     for _, container in ipairs(tabContainers) do
-        container.Parent = scrollFrame
-        container.Size = UDim2.new(1, 0, 0, container:GetChildren().Size * 45 + 10)
+        local scrollFrame = Instance.new("ScrollingFrame")
+        scrollFrame.Name = "TabScrollFrame"
+        scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+        scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+        scrollFrame.BackgroundTransparency = 1
+        scrollFrame.ScrollBarThickness = 6
+        scrollFrame.ScrollBarImageColor3 = themeColors.dark.accent
+        scrollFrame.CanvasSize = UDim2.new(0, 0, 0, container:GetChildren().Size * 45 + 10)
+        scrollFrame.Parent = container
+        
+        -- Переносим все элементы в скролл-фрейм
+        for _, child in ipairs(container:GetChildren()) do
+            if child ~= scrollFrame then
+                child.Parent = scrollFrame
+            end
+        end
+    end
+
+    -- Мобильное управление для FreeCam и Fly
+    local touchControls = Instance.new("Frame")
+    touchControls.Name = "TouchControls"
+    touchControls.Size = UDim2.new(1, 0, 0, 200)
+    touchControls.Position = UDim2.new(0, 0, 1, -200)
+    touchControls.BackgroundTransparency = 1
+    touchControls.Visible = false
+    touchControls.Parent = ScreenGui
+
+    -- Джойстик для движения
+    local moveStick = Instance.new("Frame")
+    moveStick.Name = "MoveStick"
+    moveStick.Size = UDim2.new(0, 120, 0, 120)
+    moveStick.Position = UDim2.new(0, 50, 1, -130)
+    moveStick.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    moveStick.BackgroundTransparency = 0.7
+    moveStick.Parent = touchControls
+
+    local moveStickCorner = Instance.new("UICorner")
+    moveStickCorner.CornerRadius = UDim.new(1, 0)
+    moveStickCorner.Parent = moveStick
+
+    local moveStickDot = Instance.new("Frame")
+    moveStickDot.Name = "Dot"
+    moveStickDot.Size = UDim2.new(0, 40, 0, 40)
+    moveStickDot.Position = UDim2.new(0.5, -20, 0.5, -20)
+    moveStickDot.BackgroundColor3 = Color3.fromRGB(200, 200, 200)
+    moveStickDot.BackgroundTransparency = 0.5
+    moveStickDot.Parent = moveStick
+
+    local moveStickDotCorner = Instance.new("UICorner")
+    moveStickDotCorner.CornerRadius = UDim.new(1, 0)
+    moveStickDotCorner.Parent = moveStickDot
+
+    -- Кнопки высоты
+    local upButton = Instance.new("TextButton")
+    upButton.Name = "UpButton"
+    upButton.Size = UDim2.new(0, 60, 0, 60)
+    upButton.Position = UDim2.new(1, -180, 1, -190)
+    upButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    upButton.BackgroundTransparency = 0.7
+    upButton.Text = "↑"
+    upButton.TextColor3 = Color3.new(1, 1, 1)
+    upButton.Font = Enum.Font.SourceSansBold
+    upButton.TextSize = 30
+    upButton.Parent = touchControls
+
+    local downButton = Instance.new("TextButton")
+    downButton.Name = "DownButton"
+    downButton.Size = UDim2.new(0, 60, 0, 60)
+    downButton.Position = UDim2.new(1, -180, 1, -120)
+    downButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+    downButton.BackgroundTransparency = 0.7
+    downButton.Text = "↓"
+    downButton.TextColor3 = Color3.new(1, 1, 1)
+    downButton.Font = Enum.Font.SourceSansBold
+    downButton.TextSize = 30
+    downButton.Parent = touchControls
+
+    -- Обработка управления
+    local touchInputs = {
+        forward = false,
+        backward = false,
+        left = false,
+        right = false,
+        up = false,
+        down = false
+    }
+
+    -- Обработка джойстика
+    local moveStickActive = false
+    local moveStickStartPos
+
+    moveStick.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            moveStickActive = true
+            moveStickStartPos = input.Position
+        end
+    end)
+
+    moveStick.InputChanged:Connect(function(input)
+        if moveStickActive and input.UserInputType == Enum.UserInputType.Touch then
+            local delta = (input.Position - moveStickStartPos)
+            local direction = delta.Unit
+            
+            touchInputs.forward = direction.Y < -0.5
+            touchInputs.backward = direction.Y > 0.5
+            touchInputs.left = direction.X < -0.5
+            touchInputs.right = direction.X > 0.5
+            
+            -- Обновляем позицию точки
+            local maxDistance = 40
+            local stickPos = Vector2.new(
+                math.clamp(delta.X, -maxDistance, maxDistance),
+                math.clamp(delta.Y, -maxDistance, maxDistance)
+            )
+            moveStickDot.Position = UDim2.new(0.5, stickPos.X - 20, 0.5, stickPos.Y - 20)
+        end
+    end)
+
+    moveStick.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.Touch then
+            moveStickActive = false
+            moveStickDot.Position = UDim2.new(0.5, -20, 0.5, -20)
+            touchInputs.forward = false
+            touchInputs.backward = false
+            touchInputs.left = false
+            touchInputs.right = false
+        end
+    end)
+
+    -- Обработка кнопок высоты
+    upButton.MouseButton1Down:Connect(function()
+        touchInputs.up = true
+    end)
+    
+    upButton.MouseButton1Up:Connect(function()
+        touchInputs.up = false
+    end)
+    
+    downButton.MouseButton1Down:Connect(function()
+        touchInputs.down = true
+    end)
+    
+    downButton.MouseButton1Up:Connect(function()
+        touchInputs.down = false
+    end)
+
+    -- Обновление управления
+    RunService.Heartbeat:Connect(function(dt)
+        if flyEnabled then
+            touchControls.Visible = true
+            updateFlyControls(touchInputs)
+        elseif freeCamEnabled then
+            touchControls.Visible = true
+            updateFreeCamControls(touchInputs, dt)
+        else
+            touchControls.Visible = false
+        end
+    end)
+
+    -- Функции обновления управления
+    function updateFlyControls(inputs)
+        local character = player.Character
+        if not character then return end
+        
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        if not humanoid or not rootPart then return end
+        
+        local camera = workspace.CurrentCamera
+        local lookVector = camera.CFrame.LookVector
+        local rightVector = camera.CFrame.RightVector
+        
+        local direction = Vector3.new()
+        if inputs.forward then direction = direction + lookVector end
+        if inputs.backward then direction = direction - lookVector end
+        if inputs.left then direction = direction - rightVector end
+        if inputs.right then direction = direction + rightVector end
+        if inputs.up then direction = direction + Vector3.new(0, 1, 0) end
+        if inputs.down then direction = direction + Vector3.new(0, -1, 0) end
+        
+        if direction.Magnitude > 0 then
+            direction = direction.Unit * flySpeed
+        end
+        
+        if flyVelocity then
+            flyVelocity.Velocity = direction
+            flyGyro.CFrame = CFrame.new(rootPart.Position, rootPart.Position + lookVector)
+        end
+    end
+
+    function updateFreeCamControls(inputs, dt)
+        local camera = workspace.CurrentCamera
+        local moveVector = Vector3.new()
+        local speed = freeCamSpeed
+        
+        if inputs.forward then moveVector = moveVector + camera.CFrame.LookVector end
+        if inputs.backward then moveVector = moveVector - camera.CFrame.LookVector end
+        if inputs.left then moveVector = moveVector - camera.CFrame.RightVector end
+        if inputs.right then moveVector = moveVector + camera.CFrame.RightVector end
+        if inputs.up then moveVector = moveVector + Vector3.new(0, 1, 0) end
+        if inputs.down then moveVector = moveVector + Vector3.new(0, -1, 0) end
+        
+        if moveVector.Magnitude > 0 then
+            moveVector = moveVector.Unit * speed
+            camera.CFrame = camera.CFrame + moveVector * dt * 60
+        end
     end
 end
