@@ -1475,4 +1475,66 @@ UIS.InputBegan:Connect(function(input, processed)
 	end
 end)
 
-toggleMenu()
+toggleMenu() -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------а
+
+
+-- Добавляем мобильную кнопку переключения меню
+local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
+
+if isMobile then
+    local mobileToggleButton = Instance.new("TextButton")
+    mobileToggleButton.Name = "MobileToggleButton"
+    mobileToggleButton.Size = UDim2.new(0, 80, 0, 40)
+    mobileToggleButton.Position = UDim2.new(0.5, -40, 0, 10)
+    mobileToggleButton.AnchorPoint = Vector2.new(0.5, 0)
+    mobileToggleButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    mobileToggleButton.BackgroundTransparency = 0.5
+    mobileToggleButton.TextColor3 = Color3.new(1, 1, 1)
+    mobileToggleButton.Text = "OPEN"
+    mobileToggleButton.Font = Enum.Font.SourceSansBold
+    mobileToggleButton.TextSize = 18
+    mobileToggleButton.ZIndex = 999999
+    mobileToggleButton.Parent = ScreenGui
+    
+    -- Закругленные углы
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.2, 0)
+    corner.Parent = mobileToggleButton
+    
+    -- Анимация при нажатии
+    local function animateButton()
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.7
+        }):Play()
+        wait(0.1)
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.5
+        }):Play()
+    end
+    
+    -- Функция переключения меню
+    local function toggleMobileMenu()
+        buttonSound:Play()
+        animateButton()
+        menuVisible = not menuVisible
+        
+        if menuVisible then
+            mobileToggleButton.Text = "EXIT"
+            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, 10, 0, 10)
+            }):Play()
+        else
+            mobileToggleButton.Text = "OPEN"
+            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, -510, 0, 10)
+            }):Play()
+        end
+    end
+    
+    mobileToggleButton.MouseButton1Click:Connect(toggleMobileMenu)
+    
+    -- Скрываем меню при старте на мобильном устройстве
+    menuVisible = false
+    mainMenu.Position = UDim2.new(0, -510, 0, 10)
+    mobileToggleButton.Text = "OPEN"
+end
