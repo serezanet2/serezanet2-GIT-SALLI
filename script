@@ -1290,22 +1290,14 @@ luaExecutorButton.MouseButton1Click:Connect(toggleLuaExecutor)
 
 local function loadBuildABoat()
 	buttonSound:Play()
-	if game.PlaceId == 537413528 then
 		loadstring(game:HttpGet('https://raw.githubusercontent.com/TheRealAsu/BABFT/refs/heads/main/Jan25_Source.lua'))()
-	else
-		TeleportService:Teleport(537413528, player)
-	end
 end
 
 buildBoatButton.MouseButton1Click:Connect(loadBuildABoat)
 
 local function loadDeadRails()
 	buttonSound:Play()
-	if game.PlaceId == 116495829188952 then
 		loadstring(game:HttpGet("https://rawscripts.net/raw/Dead-Rails-Alpha-Dead-Rails-OP-KiciaHook-Script-Fastest-Auto-Farm-35961"))()
-	else
-		TeleportService:Teleport(116495829188952, player)
-	end
 end
 
 deadRailsButton.MouseButton1Click:Connect(loadDeadRails)
