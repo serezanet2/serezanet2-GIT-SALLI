@@ -1,33 +1,48 @@
 local player = game:GetService("Players").LocalPlayer
+local injector = "Unknown"
+
+-- Определение инжектора
+if syn then
+    injector = "Synapse"
+elseif PROTOSMASHER_LOADED then
+    injector = "ProtoSmasher"
+elseif KRNL_LOADED then
+    injector = "Krnl"
+elseif identifyexecutor then
+    injector = identifyexecutor() or "Unknown"
+end
+
+-- Создание интерфейса
 local gui = Instance.new("ScreenGui")
-gui.Name = "CNG_Display"
+gui.Name = "CNG_Display_"..tostring(math.random(1000,9999))
 gui.Parent = game:GetService("CoreGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 80)
-frame.Position = UDim2.new(0.5, -150, 0.1, 0)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+frame.Size = UDim2.new(0, 350, 0, 60)
+frame.Position = UDim2.new(0.5, -175, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 frame.BorderSizePixel = 0
 frame.Parent = gui
 
 local text = Instance.new("TextLabel")
-text.Size = UDim2.new(1, -40, 1, -40)
-text.Position = UDim2.new(0, 20, 0, 10)
-text.Text = "CNG_"..player.Name..".com_Synapse"
-text.TextColor3 = Color3.fromRGB(255, 255, 255)
-text.Font = Enum.Font.GothamBold
+text.Size = UDim2.new(1, -40, 1, 0)
+text.Position = UDim2.new(0, 10, 0, 0)
+text.Text = "CNG_"..player.Name..".com_"..injector
+text.TextColor3 = Color3.fromRGB(0, 255, 0)
+text.Font = Enum.Font.Code
 text.TextSize = 16
+text.TextXAlignment = Enum.TextXAlignment.Left
 text.BackgroundTransparency = 1
 text.Parent = frame
 
 local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 20, 0, 20)
-closeBtn.Position = UDim2.new(1, -30, 0, 10)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 15)
 closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 14
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeBtn.TextSize = 16
+closeBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 closeBtn.Parent = frame
 
 closeBtn.MouseButton1Click:Connect(function()
