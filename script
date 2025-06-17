@@ -2,7 +2,7 @@ local player = game:GetService("Players").LocalPlayer
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 
--- Функция кодирования в Base64
+-- Защищенное Base64 кодирование
 local function base64Encode(data)
     local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
     return ((data:gsub('.', function(x) 
@@ -23,26 +23,26 @@ local encodedKey = base64Encode(playerKey)
 local encodedScript = "aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NlcmV6YW5ldDIvc2VyZXphbmV0Mi1HSVQtU0FMTEkvbWFpbi9zY3JpcHQ="
 local profileLink = "https://playerok.com/profile/Serezanet2/products"
 
--- Создание GUI
+-- Создание GUI с защитой
 local gui = Instance.new("ScreenGui")
-gui.Name = "AuthGUI"
+gui.Name = "AuthGUI_"..tostring(math.random(1000,9999))
 gui.Parent = game:GetService("CoreGui")
-gui.DisplayOrder = 999999999
+gui.DisplayOrder = 999999
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 500, 0, 300)
 mainFrame.Position = UDim2.new(0.5, -250, 0, -350)
-mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 mainFrame.BorderSizePixel = 0
 mainFrame.ClipsDescendants = true
 mainFrame.Parent = gui
 
 local gradient = Instance.new("UIGradient")
 gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(60, 60, 60))
 })
 gradient.Rotation = 90
 gradient.Parent = mainFrame
@@ -50,7 +50,7 @@ gradient.Parent = mainFrame
 local menuText = Instance.new("TextLabel")
 menuText.Size = UDim2.new(0, 120, 0, 20)
 menuText.Position = UDim2.new(1, -130, 0, 10)
-menuText.Text = "Gitmoder"
+menuText.Text = "AuthSystem"
 menuText.TextColor3 = Color3.fromRGB(200, 200, 200)
 menuText.TextXAlignment = Enum.TextXAlignment.Right
 menuText.BackgroundTransparency = 1
@@ -61,7 +61,7 @@ menuText.Parent = mainFrame
 local creditText = Instance.new("TextLabel")
 creditText.Size = UDim2.new(0, 150, 0, 20)
 creditText.Position = UDim2.new(1, -160, 1, -30)
-creditText.Text = "By salli_system"
+creditText.Text = "Secure Access"
 creditText.TextColor3 = Color3.fromRGB(150, 150, 150)
 creditText.TextXAlignment = Enum.TextXAlignment.Right
 creditText.BackgroundTransparency = 1
@@ -97,7 +97,7 @@ local submitBtn = Instance.new("TextButton")
 submitBtn.Name = "SubmitBtn"
 submitBtn.Size = UDim2.new(0, 140, 0, 35)
 submitBtn.Position = UDim2.new(0.3, -70, 0.65, 0)
-submitBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
 submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 submitBtn.Text = "ПОДТВЕРДИТЬ"
 submitBtn.Font = Enum.Font.GothamBold
@@ -108,19 +108,12 @@ local copyBtn = Instance.new("TextButton")
 copyBtn.Name = "CopyBtn"
 copyBtn.Size = UDim2.new(0, 140, 0, 35)
 copyBtn.Position = UDim2.new(0.7, -70, 0.65, 0)
-copyBtn.Text = "Скопировать Playrock"
+copyBtn.Text = "Информация"
 copyBtn.Font = Enum.Font.GothamBold
 copyBtn.TextSize = 12
 copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
 copyBtn.Parent = mainFrame
-
-local btnGradient = Instance.new("UIGradient")
-btnGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 200, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
-})
-btnGradient.Rotation = 90
-btnGradient.Parent = copyBtn
 
 local statusText = Instance.new("TextLabel")
 statusText.Name = "StatusText"
@@ -143,93 +136,87 @@ local function tween(obj, props, duration, easingStyle, easingDirection)
 end
 
 local function initialAnimation()
-    tween(mainFrame, {
-        Position = UDim2.new(0.5, -250, 0.5, -150)
-    }, 1.2, Enum.EasingStyle.Bounce)
+    pcall(function()
+        tween(mainFrame, {
+            Position = UDim2.new(0.5, -250, 0.5, -150)
+        }, 1.2, Enum.EasingStyle.Bounce)
+    end)
 end
 
 local function successAnimation(callback)
-    submitBtn.Active = false
-    submitBtn.Text = "✓ УСПЕШНО"
-    tween(submitBtn, {
-        BackgroundTransparency = 0.7,
-        TextTransparency = 0.3,
-        BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-    }, 0.3)
+    pcall(function()
+        submitBtn.Text = "✓ УСПЕШНО"
+        tween(submitBtn, {
+            BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+        }, 0.3)
 
-    passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
-    passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
+        passwordText.Text = "ДОСТУП РАЗРЕШЕН!"
+        passwordText.TextColor3 = Color3.fromRGB(0, 255, 0)
 
-    tween(mainFrame, {
-        Size = UDim2.new(1, 0, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0)
-    }, 1, Enum.EasingStyle.Quint)
+        tween(mainFrame, {
+            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 0, 0, 0)
+        }, 1, Enum.EasingStyle.Quint)
 
-    tween(menuText, {
-        Position = UDim2.new(1, -20, 0, 20),
-        TextSize = 18
-    }, 0.5)
-    
-    tween(creditText, {
-        Position = UDim2.new(1, -20, 1, -30),
-        TextSize = 16
-    }, 0.5)
-
-    task.wait(1)
-    if callback then callback() end
+        task.wait(1)
+        if callback then callback() end
+    end)
 end
 
 local function hideAnimation()
-    tween(mainFrame, {
-        Size = UDim2.new(0, 100, 0, 60),
-        Position = UDim2.new(0.5, -50, 0.5, -12.5)
-    }, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In).Completed:Wait()
-    
-    tween(mainFrame, {
-        Position = UDim2.new(0.5, -50, 0, -100)
-    }, 0.8).Completed:Wait()
-    
-    gui:Destroy()
+    pcall(function()
+        tween(mainFrame, {
+            Size = UDim2.new(0, 100, 0, 60),
+            Position = UDim2.new(0.5, -50, 0.5, -30)
+        }, 0.6).Completed:Wait()
+        
+        gui:Destroy()
+    end)
 end
 
--- Обработчики событий
+-- Обработчики с защитой
 local isChecking = false
 submitBtn.MouseButton1Click:Connect(function()
     if isChecking then return end
     isChecking = true
     
-    if textBox.Text == encodedKey then
-        statusText.Text = "Проверка ключа..."
-        statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
-        
-        successAnimation(function()
-            local success, scriptContent = pcall(function()
-                return game:HttpGet(HttpService:JSONDecode(encodedScript))
-            end)
-
-            if success then
-                loadstring(scriptContent)()
-            else
-                warn("Ошибка загрузки скрипта!")
-            end
+    pcall(function()
+        if textBox.Text == encodedKey then
+            statusText.Text = "Проверка..."
+            statusText.TextColor3 = Color3.fromRGB(255, 255, 255)
             
-            hideAnimation()
-        end)
-    else
-        statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
-        statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
-        task.wait(1.5)
-        statusText.Text = ""
-        isChecking = false
-    end
+            successAnimation(function()
+                local loadedScript
+                local loadSuccess = pcall(function()
+                    loadedScript = game:HttpGet(HttpService:JSONDecode(encodedScript))
+                end)
+                
+                if loadSuccess and loadedScript then
+                    pcall(loadstring(loadedScript))
+                end
+                
+                hideAnimation()
+            end)
+        else
+            statusText.Text = "НЕВЕРНЫЙ КЛЮЧ!"
+            statusText.TextColor3 = Color3.fromRGB(255, 50, 50)
+            task.wait(1.5)
+            statusText.Text = ""
+        end
+    end)
+    
+    isChecking = false
 end)
 
 copyBtn.MouseButton1Click:Connect(function()
-    setclipboard(profileLink)
-    local originalText = copyBtn.Text
-    copyBtn.Text = "Скопировано!"
-    task.wait(1.5)
-    copyBtn.Text = originalText
+    pcall(function()
+        setclipboard(profileLink)
+        local originalText = copyBtn.Text
+        copyBtn.Text = "Скопировано!"
+        task.wait(1.5)
+        copyBtn.Text = originalText
+    end)
 end)
 
+-- Запуск
 initialAnimation()
