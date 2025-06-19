@@ -177,17 +177,16 @@ local function createTab(name, text, position)
 end
 
 local tab1 = createTab("Tab1", "Player", UDim2.new(0, 0, 0, 0))
-local tab2 = createTab("Tab2", "TP", UDim2.new(0.111, 0, 0, 0))
-local tab3 = createTab("Tab3", "PvP", UDim2.new(0.222, 0, 0, 0))
-local tab4 = createTab("Tab4", "Visual", UDim2.new(0.333, 0, 0, 0))
-local tab5 = createTab("Tab5", "ESP", UDim2.new(0.444, 0, 0, 0))
-local tab6 = createTab("Tab6", "Misc", UDim2.new(0.555, 0, 0, 0))
-local tab7 = createTab("Tab7", "Hacks", UDim2.new(0.666, 0, 0, 0))
-local tab8 = createTab("Tab8", "Scripts", UDim2.new(0.777, 0, 0, 0))
-local tab8 = createTab("Tab8", "Settings", UDim2.new(0.888, 0, 0, 0))
+local tab2 = createTab("Tab2", "TP", UDim2.new(0.125, 0, 0, 0))
+local tab3 = createTab("Tab3", "PvP", UDim2.new(0.25, 0, 0, 0))
+local tab4 = createTab("Tab4", "Visual", UDim2.new(0.375, 0, 0, 0))
+local tab5 = createTab("Tab5", "ESP", UDim2.new(0.5, 0, 0, 0))
+local tab6 = createTab("Tab6", "Misc", UDim2.new(0.625, 0, 0, 0))
+local tab7 = createTab("Tab7", "Hacks", UDim2.new(0.75, 0, 0, 0))
+local tab8 = createTab("Tab8", "Scripts", UDim2.new(0.875, 0, 0, 0))
 
 local tabContainers = {}
-for i = 1, 9 do
+for i = 1, 8 do
 	local container = Instance.new("Frame")
 	container.Name = "Tab"..i.."Container"
 	container.Size = UDim2.new(1, 0, 1, -110)
@@ -199,7 +198,7 @@ for i = 1, 9 do
 end
 
 local function switchTab(tab)
-	for i = 1, 9 do
+	for i = 1, 8 do
 		local currentTab = tabsFrame:FindFirstChild("Tab"..i)
 		if currentTab then
 			currentTab.BackgroundColor3 = tab == currentTab and themeColors.dark.accent or themeColors.dark.button
@@ -208,7 +207,7 @@ local function switchTab(tab)
 	end
 end
 
-for i = 1, 9 do
+for i = 1, 8 do
 	local tab = tabsFrame:FindFirstChild("Tab"..i)
 	if tab then
 		tab.MouseButton1Click:Connect(function() switchTab(tab) end)
@@ -321,7 +320,7 @@ local function toggleTheme()
 	titleFrame.BackgroundColor3 = colors.secondary
 	playerInfo.TextColor3 = colors.text
 
-	for i = 1, 9 do
+	for i = 1, 8 do
 		local tab = tabsFrame:FindFirstChild("Tab"..i)
 		if tab then
 			tab.BackgroundColor3 = tabContainers[i].Visible and colors.accent or colors.button
@@ -454,6 +453,8 @@ local function toggleFly()
 			if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - lookVector end
 			if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - rightVector end
 			if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + rightVector end
+			if UIS:IsKeyDown(Enum.KeyCode.E) then direction = direction + Vector3.new(0, 1, 0) end
+			if UIS:IsKeyDown(Enum.KeyCode.Q) then direction = direction + Vector3.new(0, -1, 0) end
 
 			if direction.Magnitude > 0 then
 				direction = direction.Unit * flySpeed
@@ -554,12 +555,14 @@ local function UpdateFreeCam(dt)
 	local camera = workspace.CurrentCamera
 
 	local moveVector = Vector3.new()
-	local speed = UIS:IsKeyDown(Enum.KeyCode.LeftControl) and freeCamFastSpeed or freeCamSpeed
+	local speed = UIS:IsKeyDown(Enum.KeyCode.LeftShift) and freeCamFastSpeed or freeCamSpeed
 
 	if UIS:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + camera.CFrame.LookVector end
 	if UIS:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - camera.CFrame.LookVector end
 	if UIS:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - camera.CFrame.RightVector end
 	if UIS:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + camera.CFrame.RightVector end
+	if UIS:IsKeyDown(Enum.KeyCode.E) then moveVector = moveVector + Vector3.new(0, 1, 0) end
+	if UIS:IsKeyDown(Enum.KeyCode.Q) then moveVector = moveVector + Vector3.new(0, -1, 0) end
 
 	if moveVector.Magnitude > 0 then
 		moveVector = moveVector.Unit * speed
@@ -1314,8 +1317,6 @@ end
 
 infiniteYieldButton.MouseButton1Click:Connect(loadInfiniteYield)
 
-аааааааа
-
 local function loadGunScript()
     buttonSound:Play()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/serezanet2/serezanet2-GIT-SALLI/refs/heads/main/GIT-SALLI-%D0%92%D0%B8%D0%BD%D1%82%D0%BE%D0%B2%D0%BA%D0%B0%20%D0%B1%D0%BE%D0%BB%D1%82.lua'))()
@@ -1475,3 +1476,64 @@ UIS.InputBegan:Connect(function(input, processed)
 end)
 
 toggleMenu()
+
+-- Добавляем мобильную кнопку переключения меню
+local isMobile = UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
+
+if isMobile then
+    local mobileToggleButton = Instance.new("TextButton")
+    mobileToggleButton.Name = "MobileToggleButton"
+    mobileToggleButton.Size = UDim2.new(0, 80, 0, 40)
+    mobileToggleButton.Position = UDim2.new(0.5, -40, 0, 10)
+    mobileToggleButton.AnchorPoint = Vector2.new(0.5, 0)
+    mobileToggleButton.BackgroundColor3 = Color3.new(0, 0.5, 1)
+    mobileToggleButton.BackgroundTransparency = 0.5
+    mobileToggleButton.TextColor3 = Color3.new(1, 1, 1)
+    mobileToggleButton.Text = "OPEN"
+    mobileToggleButton.Font = Enum.Font.SourceSansBold
+    mobileToggleButton.TextSize = 18
+    mobileToggleButton.ZIndex = 999999
+    mobileToggleButton.Parent = ScreenGui
+    
+    -- Закругленные углы
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0.2, 0)
+    corner.Parent = mobileToggleButton
+    
+    -- Анимация при нажатии
+    local function animateButton()
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.7
+        }):Play()
+        wait(0.1)
+        TweenService:Create(mobileToggleButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.5
+        }):Play()
+    end
+    
+    -- Функция переключения меню
+    local function toggleMobileMenu()
+        buttonSound:Play()
+        animateButton()
+        menuVisible = not menuVisible
+        
+        if menuVisible then
+            mobileToggleButton.Text = "EXIT"
+            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, 10, 0, 10)
+            }):Play()
+        else
+            mobileToggleButton.Text = "OPEN"
+            TweenService:Create(mainMenu, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, -510, 0, 10)
+            }):Play()
+        end
+    end
+    
+    mobileToggleButton.MouseButton1Click:Connect(toggleMobileMenu)
+    
+    -- Скрываем меню при старте на мобильном устройстве
+    menuVisible = false
+    mainMenu.Position = UDim2.new(0, -510, 0, 10)
+    mobileToggleButton.Text = "OPEN"
+end
